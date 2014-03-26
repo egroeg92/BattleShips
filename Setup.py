@@ -115,8 +115,9 @@ def start(clientsocket,opp,user,un):
         if op_ready == True and ready == True and listen == False:
 #             clientsocket.send('BreakListener')
             clientsocket.send('StartGame')
-            
+
             startGame.main(clientsocket, opp,user,player1)
+            
             break
             
         for event in pygame.event.get():
@@ -124,6 +125,7 @@ def start(clientsocket,opp,user,un):
                 print 'Back-Setup'
                 clientsocket.send('ExitSetup:'+opp)
                 clientsocket.send('ExitSetup:'+user)
+
             if 'click' in buttonStart.handleEvent(event) and ready == False:
                     ready = True
                     windowBgColor = BLACK
@@ -133,6 +135,7 @@ def start(clientsocket,opp,user,un):
                     SCREEN.blit(label, (100, 100))
                     pygame.display.update()
                     clientsocket.send('Ready:'+str(opp))
+                    
                     if op_ready == True:
                         clientsocket.send('BreakListener')
                         player1 = False

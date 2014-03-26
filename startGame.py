@@ -28,6 +28,7 @@ def listener(clientsocket,screen):
     global active
     global turn
     global op_positioned
+    global op_positionedShips
     # global turnType
     while True:
         data = clientsocket.recv(1024)
@@ -199,42 +200,10 @@ def listener(clientsocket,screen):
             
             if dataList[0] == 'Position':
                 dataList = dataList[:-2]
-                #print 'position'
-                #print 'dataList',dataList
                 dataList.reverse()
-                #print 'dataList R',dataList
-                #print len(dataList)
-                # dataList.pop()
 
-                while len(dataList) >0:
-                    dataList.pop()
-                    ship = op_shiplist[int(dataList.pop())]
-                    #print "SHIP NAME"+str(ship.getName())
-                    x = int(dataList.pop())
-                    y = int(dataList.pop())
-                    d = dataList.pop()
-                    ship.setSelected(True)
-                    if Player1: #then positioning player 2
-                        if d == 'W':
-                            p =0
-                        elif d =='N':
-                            p =1
-                        elif d =='E':
-                            p =2
-                        elif d == 'S':
-                            p = 3
-                    else:
-                        if d == 'E':
-                            p = 0
-                        elif d =='S':
-                            p =1
-                        elif d =='W':
-                            p =2
-                        elif d =='N':
-                            p = 3
+                op_positionedShips = dataList
 
-                    game.positionShip(x, y, p)
-                    ship.setSelected(False)
 
                 op_positioned = True
 
@@ -349,6 +318,8 @@ def main(clientsocket, opp,user,player):
     hcannon = False 
 
 
+    global op_positionedShips
+    op_positionedShips = []    
 #####################################################
 ##                                                 ##
 ##              MAIN GAME LOOP                     ##
@@ -361,6 +332,39 @@ def main(clientsocket, opp,user,player):
         ## if offline its always your turn, (for debugging)
         if offline:
             turn = True
+
+        if positioned and op_positioned:
+            print 'no0000000000000000000000000ooooooooooo'
+            while len(op_positionedShips) >0:
+                op_positionedShips.pop()
+                ship = op_shiplist[int(dataList.pop())]
+                #print "SHIP NAME"+str(ship.getName())
+                x1 = int(op_positionedShips.pop())
+                y1 = int(op_positionedShips.pop())
+                d1 = op_positionedShips.pop()
+                ship.setSelected(True)
+                if Player1: #then positioning player 2
+                    if d1 == 'W':
+                        p =0
+                    elif d1 =='N':
+                        p =1
+                    elif d1 =='E':
+                        p =2
+                    elif d1 == 'S':
+                        p = 3
+                else:
+                    if d1 == 'E':
+                        p = 0
+                    elif d1 =='S':
+                        p =1
+                    elif d1 =='W':
+                        p =2
+                    elif d1 =='N':
+                        p = 3
+
+                game.positionShip(x1, y1, p)
+                ship.setSelected(False)
+
 
         ## Player 1 always has first turn 
         if Player1 and op_positioned == True and turnType == "":
@@ -1005,8 +1009,11 @@ def main(clientsocket, opp,user,player):
                     #print string
                     if not offline: 
                         clientsocket.send(string)
+
+                        
                     if Player1 and op_positioned == True :
                         turn = True
+                    
                     else:
                         turn = False
 
