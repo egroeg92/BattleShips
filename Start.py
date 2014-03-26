@@ -26,8 +26,7 @@ def main():
 
 
     # menu buttons
-    buttonSignUp = pygbutton.PygButton((WINDOWWIDTH/2-60, 50, 120, 30), 'Sign Up')
-    buttonSignIn = pygbutton.PygButton((WINDOWWIDTH/2-60, 100, 120, 30), 'Connect to Server')
+    buttonSignIn = pygbutton.PygButton((WINDOWWIDTH/2-75, 100, 150, 30), 'Connect to Server')
     buttonOptions = pygbutton.PygButton((WINDOWWIDTH/2-60, 150, 120, 30), 'Game Options')
     buttonCredits = pygbutton.PygButton((WINDOWWIDTH/2-60, 200, 120, 30), 'Credits')
     buttonExit = pygbutton.PygButton((WINDOWWIDTH/2-60, 250, 120, 30), 'Exit')
@@ -35,7 +34,7 @@ def main():
 
     buttonBack = pygbutton.PygButton((WINDOWWIDTH/2-60, 50, 120, 30), 'BACK <')
 
-    allButtons = (buttonSignUp, buttonSignIn, buttonOptions, buttonCredits, buttonExit,buttonInstructions)
+    allButtons = (buttonSignIn, buttonOptions, buttonCredits, buttonExit,buttonInstructions)
     for b in allButtons:
             b.draw(screen)
 
@@ -47,13 +46,7 @@ def main():
                 pygame.quit()
                 sys.exit()
 
-            if 'click' in buttonSignUp.handleEvent(event):
-                windowBgColor = BLACK
-                screen.fill(windowBgColor); #erases the prev screen
-                label = FONT.render("MATCHUP", 1, (255,255,0))
-                screen.blit(label, (100, 100))
-                buttonBack.draw(screen)
-                pygame.display.update()
+
 
             if 'click' in buttonSignIn.handleEvent(event):
                 Start = False

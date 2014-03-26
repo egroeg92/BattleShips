@@ -31,16 +31,9 @@ def handler(clientsocket, clientaddr):
         print name+" has "+ data
         
 
-        if data == 'Signed Out' :
-            clientsocket.send('Signout')
-            matchup_address.remove(clientaddr[1])
-            matchup_sockets.remove((clientsocket,clientaddr[1]))
-            connections.remove((clientsocket,clientaddr[1]))
-            for x in matchup_sockets:
-                x[0].send(str(matchup_address))    
-            break
 
-        elif data == 'SetupC' :
+
+        if data == 'SetupC' :
             # clientsocket.send('Set up')
             print 'SetupC'
             clientsocket.send('Setup')
@@ -59,16 +52,6 @@ def handler(clientsocket, clientaddr):
 
             # break
 
-        elif data == 'Matchup' :
-            print 'MATCHUP'
-            matchup_address.append(clientaddr[1])
-            matchup_sockets.append((clientsocket,clientaddr[1]))
-            if (clientsocket,clientaddr[1]) not in connections:
-                print 'just once'
-                connections.append((clientsocket,clientaddr[1]))
-            for x in matchup_sockets:
-                x[0].send(str(matchup_address))
-                
         elif data == 'StartGame':
             print "STARTED"
             print 'oppAddr = '+ str(oppAddr)
@@ -83,29 +66,105 @@ def handler(clientsocket, clientaddr):
 
         dataList = data.split(':')
 
+        if dataList[0] == 'Signed Out' :
+            clientsocket.send('Signout')
+            matchup_address.remove(clientaddr[1])
+            matchup_sockets.remove((clientsocket,clientaddr[1]))
+            connections.remove((clientsocket,clientaddr[1]))
+            for x in matchup_sockets:
+                x[0].send(str(matchup_address))
+
+            un = dataList[1]
+            print un
+            lock.acquire()
+            try:
+                f = open('users.dat','r+')
+                f2 = open('tmp.dat', 'w+')
+                f2.write('')
+                f2.close()
+                f2 = open('tmp.dat', 'a+')
+                content = f.readlines()
+                for c in content:
+                    c1 =c.split(':')
+                    print str(c1[0])
+                    print str(c1[1])
+                    if str(c1[0]) == str(un):
+                        x = str(c1[0])+':'+str(c1[1])+':OFFLINE:'+str(c1[3])+':'+str(c1[4])
+                        print 'DADSFASASF'+x
+                        f2.write(x)
+                    else:
+                        x = str(c1[0])+':'+str(c1[1])+':'+str(c1[2])+':'+str(c1[3])+':'+str(c1[4])
+                        
+                        print "NO"
+                        f2.write(x)
+
+                f.close()
+                f = open('users.dat','w')
+                f.write('')
+                f.close()
+                f = open('users.dat','a+')
+                f2.close()
+                f2 = open('tmp.dat','r')
+
+                content = f2.readlines()
+                for c in content:
+                    print c
+                    f.write(c)
+
+                f.close()
+                f2.close()
+            finally:
+                lock.release() 
+            break
+
         # SIGNING IN
-        if dataList[0] == 'Login':
+        elif dataList[0] == 'Login':
             un = dataList[1]
             pw = dataList[2]
+
             print un
             print pw
             si = False
             lock.acquire()
             try:
-                f = open('users.dat','r')
+                f = open('users.dat','r+')
+                f2 = open('tmp.dat', 'w+')
+                f2.write('')
+                f2.close()
+                f2 = open('tmp.dat', 'a+')
                 content = f.readlines()
                 for c in content:
                     c1 =c.split(':')
                     print str(c1[0])
-                    print str(c1[1])[:-1]
-                    if str(c1[0]) == str(un) and str(c1[1])[:-1] == str(pw):
+                    print str(c1[1])
+                    if str(c1[0]) == str(un) and str(c1[1])== str(pw) and str(c1[2]) == 'OFFLINE':
                         print 'login success!'
+                        x = str(c1[0])+':'+str(c1[1])+':ONLINE:'+str(c1[3])+':'+str(c1[4])
+                        f2.write(x)
                         clientsocket.send('SignedIn')
                         si = True
-                        break
+                        
+                    else:
+                        x = str(c1[0])+':'+str(c1[1])+':'+str(c1[2])+':'+str(c1[3])+':'+str(c1[4])
+                        f2.write(x)
+
                 if not si:
-                    clientsocket.send('DNE')
+                    clientsocket.send('Does not exist or already logged in')
+                else:
+
+                    f.close()
+                    f = open('users.dat','w')
+                    f.write('')
+                    f.close()
+                    f = open('users.dat','a+')
+                    f2.close()
+                    f2 = open('tmp.dat','r')
+                    content = f2.readlines()
+                    for c in content:
+                        f.write(c)
+
                 f.close()
+                f2.close()
             finally:
                 lock.release()
 
@@ -133,11 +192,23 @@ def handler(clientsocket, clientaddr):
                     f.close()
                     print 'writing'
                     f = open('users.dat','a')
-                    f.write(str(un)+':'+str(pw)+'\n')
+                    f.write(str(un)+':'+str(pw)+':ONLINE:0:0\n')
                     clientsocket.send('SignedIn')
                 f.close()
             finally:
                 lock.release()
+
+        
+        elif dataList[0] == 'Matchup' :
+            print 'MATCHUP'
+            matchup_address.append(clientaddr[1])
+            matchup_sockets.append((clientsocket,clientaddr[1]))
+            if (clientsocket,clientaddr[1]) not in connections:
+                print 'just once'
+                connections.append((clientsocket,clientaddr[1]))
+            for x in matchup_sockets:
+                x[0].send(str(matchup_address))
+                
         elif dataList[0] == 'Disconnect':
             break
                 

@@ -35,7 +35,7 @@ def start(socketerror, ip):
 	print 'Sign In'
 	windowBgColor = BLACK
 
-	FPSCLOCK = pygame.time.Clock()
+	CLOCK = pygame.time.Clock()
 	SCREEN = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
 	pygame.display.set_caption('Connect to Server')
 
@@ -61,7 +61,8 @@ def start(socketerror, ip):
 	buttonExit.draw(SCREEN)
 
 	pygame.display.update()
-	
+
+		
 	loop = True
 	while loop :
 		for event in pygame.event.get():
@@ -80,9 +81,7 @@ def start(socketerror, ip):
 				except error:
 					loop = False
 					start(True,host)
-								
-					
-
+									
 			
 			if 'click' in buttonExit.handleEvent(event):
 				print 'back-sign in'

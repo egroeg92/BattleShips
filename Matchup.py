@@ -139,7 +139,7 @@ def start(clientsocket,un):
 
     pygame.display.update()
     
-    clientsocket.send('Matchup')
+    clientsocket.send('Matchup:'+un)
     print 'T1 '+ str(threading.activeCount())
     l_thread = threading.Thread(target = listener, args = (clientsocket,SCREEN))
     
@@ -165,7 +165,7 @@ def start(clientsocket,un):
         
         for event in pygame.event.get():
             if 'click' in buttonExit.handleEvent(event):
-                clientsocket.send("Signed Out")
+                clientsocket.send("Signed Out:"+str(un))
                 # May need to lock
                 clientsocket.close()
                 print 'Back-matchup'
