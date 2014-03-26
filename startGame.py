@@ -337,7 +337,7 @@ def main(clientsocket, opp,user,player):
             print 'no0000000000000000000000000ooooooooooo'
             while len(op_positionedShips) >0:
                 op_positionedShips.pop()
-                ship = op_shiplist[int(dataList.pop())]
+                ship = op_shiplist[int(op_positionedShips.pop())]
                 #print "SHIP NAME"+str(ship.getName())
                 x1 = int(op_positionedShips.pop())
                 y1 = int(op_positionedShips.pop())
