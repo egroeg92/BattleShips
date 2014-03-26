@@ -42,26 +42,30 @@ def listener(clientsocket,SCREEN):
         data = clientsocket.recv(1024)
         print 'data rec = '+data
         
-        if data[0:10] == 'CHALLENGED':
-            challenger = data[10:]
-            print 'challenger '+str(challenger)
-            if challenger not in challengelist:
-                challengelist.append(challenger)
-            print 'challenge list '+str(challengelist)
-        
-        elif data == 'Signout':
+
+        if data == 'Signout':
             break
         
         elif data == 'Setup':
             Set_up = True
             break
 
-        elif data[0:8] == 'ACCEPTED':
-            print 'CHALLENGE ACCEPTED FROM '+str(data[8:])
-            opp = data[8:]
-            clientsocket.send('SetupA')
-            Set_up = True
-            break
+        dataList = data.split(':')
+
+        if len(dataList) > 1:
+            if dataList[1] == 'CHALLENGED':
+                challenger = dataList[2]
+                print 'challenger '+str(challenger)
+                if challenger not in challengelist:
+                    challengelist.append(challenger)
+                print 'challenge list '+str(challengelist)
+            
+            elif dataList[1] == 'ACCEPTED':
+                print 'CHALLENGE ACCEPTED FROM '+str(dataList[2])
+                opp = dataList[2]
+                clientsocket.send('SetupA')
+                Set_up = True
+                break
 
         else:
             

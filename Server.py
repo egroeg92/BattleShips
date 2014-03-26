@@ -147,14 +147,14 @@ def handler(clientsocket, clientaddr):
             for x in matchup_sockets:
                 print str(x[1])+ dataList[1]
                 if str(x[1]) == dataList[1]:
-                    x[0].send("CHALLENGED"+str(clientaddr[1]))
+                    x[0].send(":CHALLENGED:"+str(clientaddr[1]))
 
         elif dataList[0] == 'Accept':
             print 'accepted'
             print dataList
             for x in matchup_sockets:
                 if str(x[1]) == dataList[1]:
-                    x[0].send('ACCEPTED'+str(clientaddr[1]))
+                    x[0].send(':ACCEPTED:'+str(clientaddr[1]))
 
         elif dataList[0] == 'ExitSetup':
             print 'ExitSetup'
