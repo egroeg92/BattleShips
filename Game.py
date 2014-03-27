@@ -359,10 +359,7 @@ class Game(object):
 
                 sq = self.gameBoard.getSquare(tuple[0], tuple[1])
                 object = sq.getObjectOn()
-                #print object
-
                 orientation = ship.getOrientation()
-                #print "Ship that fired the shot: " + ship.getOrientation()
 
                 if object == None:
                     return "Shot disappeared" + " at " + str(tuple)    
@@ -371,26 +368,18 @@ class Game(object):
                 elif object.getClassName() == "Base":
                     index = object.positionIndex(tuple)
                     health = object.getHealth()
-                    #print "INITIAL HEALTH:",health  
                     health[index] = 0
-                    #print "FINAL HEALTH:",health                    
                     sq.setObjectOn(None)    # remove base
                     return "Base hit" + str(health)
-                elif object.getClassName() == "Ship":
-                    ##print "Ship hit" + " at " + str(tuple)
-                    #print object.getName(), "hit at", tuple
 
-                    ##print "Orientation of the ship hit is " + str(object.getOrientation())
+                elif object.getClassName() == "Ship":
                     if (((object.getOrientation() == "E" or object.getOrientation() == "W") and (orientation == "N" or orientation == "S")) or ((object.getOrientation() == "N" or object.getOrientation() == "S") and (orientation == "E" or orientation == "W"))):
                         index = object.positionIndex(tuple)
                         armour = object.getArmour()
-                        #print armour  # 1 (Normal)  2 (Heavy)
                         health = object.getHealth()
-                        #print "INITIAL HEALTH:",health  
+                        
                         if armour == 2 and health[index] != 0:      # if armoured and still have health
                             health[index] = health[index] - 1
-                            #print "Index is at: ", index
-                            #print "Armoured damaged ship size is: ", object.getSize()
                 
                             if (index == object.getSize() - 1 and health[index - 1] != 0):      # if at the end of the ship and it's side square is not dead
                                 health[index - 1] = health[index - 1] - 1                       # damage the side 
@@ -405,7 +394,6 @@ class Game(object):
                                     health[index - 1] = health[index - 1] - 1
                                 elif(health[index + 1] != 0):
                                     health[index + 1] = health[index + 1] - 1
-                                #print health   
                             if sum(health) == 0:
                                 object.destroyShip(self.gameBoard)
                                 self.updateVisibility()
@@ -416,15 +404,18 @@ class Game(object):
                             
                         elif armour == 2 and health[index] == 0:    # if armoured and no health                         
                             health[index] = 0
+
+                            object.updateSpeed()
+                            return "ship hit : FINAL HEALTH: " + str(health)
+                            
                         elif armour == 1 and health[index] == 0:    # if not armoured and no health                         
-                            health[index] = 0                            
+                            health[index] = 0             
+
+                            object.updateSpeed()
+                            return "ship hit : FINAL HEALTH: " + str(health)               
                         else:                                       # if not armoured
                             health[index] = 0
-                            #print "Index is: ", index
-                            #print "Unarmoured damaged ship size is: ", object.getSize() - 1                            
                             if (index == object.getSize() - 1):                                
-                                #print "Index is: ", index
-                                #print object.getSize() - 1
                                 health[index - 1] = 0 
                             elif(index == 0):
                                 health[index + 1] = 0                                
@@ -433,7 +424,6 @@ class Game(object):
                                     health[index - 1] = 0
                                 elif(health[index + 1] != 0):
                                     health[index + 1] = 0
-                                #print health                                  
                             if sum(health) == 0:
                                 object.destroyShip(self.gameBoard) 
                                 self.updateVisibility()
@@ -444,7 +434,6 @@ class Game(object):
                     else:                                            # firing at straight on onto a ship
                         index = object.positionIndex(tuple)
                         armour = object.getArmour()
-                        #print armour  # 1 (Normal)  2 (Heavy)
                         health = object.getHealth()
                         #print "INITIAL HEALTH:",health  
                         if armour == 2 and health[index] != 0:

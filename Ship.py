@@ -594,6 +594,7 @@ class Ship(object):
         #print newpos
 
     def destroyShip(self, board):
+        print "DESTROY SHIP"
         for (x,y) in self.position:
             sq = board.getSquare(x,y)
             sq.setObjectOn(None)

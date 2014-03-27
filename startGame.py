@@ -326,6 +326,15 @@ def main(clientsocket, opp,user,player):
 ##                                                 ##
 #####################################################
     while True:
+        print len(shiplist)
+        for s in shiplist:
+            if(sum(s.getHealth()) == 0):
+                shiplist.remove(s)
+
+        for s in op_shiplist:
+            if(sum(s.getHealth()) == 0):
+                op_shiplist.remove(s)
+
         if active != True:
             break
 
@@ -334,7 +343,6 @@ def main(clientsocket, opp,user,player):
             turn = True
 
         if positioned and op_positioned:
-            print 'no0000000000000000000000000ooooooooooo'
             while len(op_positionedShips) >0:
                 op_positionedShips.pop()
                 ship = op_shiplist[int(op_positionedShips.pop())]
@@ -963,6 +971,7 @@ def main(clientsocket, opp,user,player):
 
                                 if moveValid and x>=0 and x<=29 and y>=0 and y<=29:
                                     resultString = game.fireTorpedo(x,y)
+                                    print "RESULT STRING ",resultString
 
                                     resultString = resultString.split(':')
 
