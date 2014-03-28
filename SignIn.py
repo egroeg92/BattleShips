@@ -91,6 +91,9 @@ def start(socketerror, ip):
 				
 
 if __name__ == '__main__':
+	import random 
+	import string
+	
 	host = gethostbyname(gethostname())
 	print host
 	port = 9999
@@ -99,4 +102,4 @@ if __name__ == '__main__':
 	clientsocket.connect(addr)
 	print clientsocket
 	clientsocket.send("Signed In")
-	Matchup.start(clientsocket,str(addr))
+	Matchup.start(clientsocket,''.join(random.choice(string.lowercase) for x in range(5)))

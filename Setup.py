@@ -124,7 +124,7 @@ def start(clientsocket,opp,user,un):
             if 'click' in buttonExit.handleEvent(event) and ready == False:
                 print 'Back-Setup'
                 clientsocket.send('ExitSetup:'+opp)
-                clientsocket.send('ExitSetup:'+user)
+                clientsocket.send('ExitSetup:'+user[1:-1])
 
             if 'click' in buttonStart.handleEvent(event) and ready == False:
                     ready = True

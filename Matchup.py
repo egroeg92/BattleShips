@@ -97,7 +97,7 @@ def setOnlineDisplay(SCREEN, people_list, clientsocket,buttonList,challengelist)
     label = FONT.render("Match up", 1, (255,255,0))
     SCREEN.blit(label, (100, 100))
     
-    buttonExit = pygbutton.PygButton((WINDOWWIDTH/2-60, 250, 120, 30), 'back')
+    buttonExit = pygbutton.PygButton((WINDOWWIDTH/2-60, 600, 120, 30), 'back')
     buttonExit.draw(SCREEN)
     x = 120
     buttonList = []
@@ -105,7 +105,7 @@ def setOnlineDisplay(SCREEN, people_list, clientsocket,buttonList,challengelist)
         person = FONT.render(str(y),1,(255,255,0))
         SCREEN.blit(person,(120,x))
 
-        button = pygbutton.PygButton((170,x,120,30), "challenge "+str(y))
+        button = pygbutton.PygButton((370,x,120,30), "challenge "+str(y))
         button.draw(SCREEN)
         buttonList.append((button,str(y)))
         x = x+30
@@ -113,7 +113,7 @@ def setOnlineDisplay(SCREEN, people_list, clientsocket,buttonList,challengelist)
     x = 120
     for c in challengelist:
         ch = 'chal'+str(c)
-        button = pygbutton.PygButton((400,x,120,30), "accept"+str(c))
+        button = pygbutton.PygButton((500,x,120,30), "accept"+str(c))
         button.draw(SCREEN)
         buttonList.append((button,ch))
         x = x+30
@@ -134,7 +134,7 @@ def start(clientsocket,un):
     label = FONT.render("Match up", 1, (255,255,0))
     SCREEN.blit(label, (100, 100))
     
-    buttonExit = pygbutton.PygButton((WINDOWWIDTH/2-60, 250, 120, 30), 'back')
+    buttonExit = pygbutton.PygButton((WINDOWWIDTH/2-60, 600, 120, 30), 'back')
     buttonExit.draw(SCREEN)
 
     pygame.display.update()

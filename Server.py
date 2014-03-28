@@ -20,6 +20,7 @@ lock = threading.Lock()
 def handler(clientsocket, clientaddr):
     print "Accepted connection from: ", clientaddr
     print clientsocket
+    un = ''
     clients.append(clientsocket)
     oppAddr = ''
     oppSock = ''
@@ -37,16 +38,16 @@ def handler(clientsocket, clientaddr):
             # clientsocket.send('Set up')
             print 'SetupC'
             clientsocket.send('Setup')
-            matchup_address.remove(clientaddr[1])
-            matchup_sockets.remove((clientsocket,clientaddr[1]))
+            matchup_address.remove(str(un))
+            matchup_sockets.remove((clientsocket,str(un)))
             for x in matchup_sockets:
                 x[0].send(str(matchup_address))
             
         
         elif data == 'SetupA' :
             print 'SetupA'
-            matchup_address.remove(clientaddr[1])
-            matchup_sockets.remove((clientsocket,clientaddr[1]))
+            matchup_address.remove(str(un))
+            matchup_sockets.remove((clientsocket,str(un)))
             for x in matchup_sockets:
                 x[0].send(str(matchup_address))
 
@@ -68,9 +69,9 @@ def handler(clientsocket, clientaddr):
 
         if dataList[0] == 'Signed Out' :
             clientsocket.send('Signout')
-            matchup_address.remove(clientaddr[1])
-            matchup_sockets.remove((clientsocket,clientaddr[1]))
-            connections.remove((clientsocket,clientaddr[1]))
+            matchup_address.remove(str(un))
+            matchup_sockets.remove((clientsocket,str(un)))
+            connections.remove((clientsocket,str(un)))
             for x in matchup_sockets:
                 x[0].send(str(matchup_address))
 
@@ -201,11 +202,11 @@ def handler(clientsocket, clientaddr):
         
         elif dataList[0] == 'Matchup' :
             print 'MATCHUP'
-            matchup_address.append(clientaddr[1])
-            matchup_sockets.append((clientsocket,clientaddr[1]))
-            if (clientsocket,clientaddr[1]) not in connections:
-                print 'just once'
-                connections.append((clientsocket,clientaddr[1]))
+            matchup_address.append(str(un))
+            matchup_sockets.append((clientsocket,str(un)))
+
+            if (clientsocket,str(un)) not in connections:
+                connections.append((clientsocket,str(un)))
             for x in matchup_sockets:
                 x[0].send(str(matchup_address))
                 
@@ -216,21 +217,24 @@ def handler(clientsocket, clientaddr):
             print 'challenge'
 
             for x in matchup_sockets:
-                print str(x[1])+ dataList[1]
-                if str(x[1]) == dataList[1]:
-                    x[0].send(":CHALLENGED:"+str(clientaddr[1]))
+                if str(x[1]) == str(dataList[1])[1:-1]:
+                    print str(x[0])
+                    x[0].send(":CHALLENGED:"+str(un))
 
         elif dataList[0] == 'Accept':
             print 'accepted'
             print dataList
             for x in matchup_sockets:
                 if str(x[1]) == dataList[1]:
-                    x[0].send(':ACCEPTED:'+str(clientaddr[1]))
+                    x[0].send(':ACCEPTED:'+str(un))
 
         elif dataList[0] == 'ExitSetup':
             print 'ExitSetup'
+
             exiter = dataList[1]
+            print exiter
             for x in connections:
+                print x[1],exiter
                 if(str(x[1]) ==  str(exiter)):
                     x[0].send('ExitSetup')
             oppAddr = ''
@@ -239,6 +243,8 @@ def handler(clientsocket, clientaddr):
         elif dataList[0] == 'Ready':
             oppAddr = dataList[1]
             for x in connections:
+                print (str(x[1])) , str(oppAddr)
+
                 if (str(x[1]) == str(oppAddr)):
                     oppSock = x[0]
                     oppSock.send('OppReady')
