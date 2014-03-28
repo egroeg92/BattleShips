@@ -35,6 +35,7 @@ def listener(clientsocket,SCREEN):
     global opp
     global user
     global Set_up
+    people_list = []
     user = 'null'
     print 'listening '
  
@@ -93,10 +94,15 @@ def setOnlineDisplay(SCREEN, people_list, clientsocket,buttonList,challengelist)
     
     print "update screen"
     windowBgColor = BLACK
+
     SCREEN.fill(windowBgColor)
     label = FONT.render("Match up", 1, (255,255,0))
-    SCREEN.blit(label, (100, 100))
+    SCREEN.blit(label, (300, 50))
     
+    label = FONT.render("Online", 1, (79,255,34))
+    SCREEN.blit(label, (120, 100))
+
+
     buttonExit = pygbutton.PygButton((WINDOWWIDTH/2-60, 600, 120, 30), 'back')
     buttonExit.draw(SCREEN)
     x = 120
@@ -104,8 +110,8 @@ def setOnlineDisplay(SCREEN, people_list, clientsocket,buttonList,challengelist)
     for y in people_list :
         person = FONT.render(str(y),1,(255,255,0))
         SCREEN.blit(person,(120,x))
-
-        button = pygbutton.PygButton((370,x,120,30), "challenge "+str(y))
+        l = y.split(';')
+        button = pygbutton.PygButton((370,x,150,30), "challenge "+str(l[0])+'\'')
         button.draw(SCREEN)
         buttonList.append((button,str(y)))
         x = x+30
@@ -113,7 +119,8 @@ def setOnlineDisplay(SCREEN, people_list, clientsocket,buttonList,challengelist)
     x = 120
     for c in challengelist:
         ch = 'chal'+str(c)
-        button = pygbutton.PygButton((500,x,120,30), "accept"+str(c))
+        l = c.split(';')
+        button = pygbutton.PygButton((530,x,170,30), "accept challenge from "+str(l[0]))
         button.draw(SCREEN)
         buttonList.append((button,ch))
         x = x+30
@@ -132,8 +139,12 @@ def start(clientsocket,un):
 
     SCREEN.fill(windowBgColor)
     label = FONT.render("Match up", 1, (255,255,0))
-    SCREEN.blit(label, (100, 100))
+    SCREEN.blit(label, (300, 50))
     
+    label = FONT.render("Online", 1, (79,255,34))
+    SCREEN.blit(label, (120, 100))
+
+
     buttonExit = pygbutton.PygButton((WINDOWWIDTH/2-60, 600, 120, 30), 'back')
     buttonExit.draw(SCREEN)
 

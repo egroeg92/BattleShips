@@ -73,7 +73,6 @@ def start(socketerror, ip):
 					clientsocket.connect(addr)
 					clientsocket.send("Signed In")
 					login.start(clientsocket)
-					# Matchup.start(clientsocket)
 					
 				except gaierror:
 					loop = False
@@ -93,7 +92,7 @@ def start(socketerror, ip):
 if __name__ == '__main__':
 	import random 
 	import string
-	
+
 	host = gethostbyname(gethostname())
 	print host
 	port = 9999

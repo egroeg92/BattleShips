@@ -91,7 +91,6 @@ def handler(clientsocket, clientaddr):
                     print str(c1[1])
                     if str(c1[0]) == str(un):
                         x = str(c1[0])+':'+str(c1[1])+':OFFLINE:'+str(c1[3])+':'+str(c1[4])
-                        print 'DADSFASASF'+x
                         f2.write(x)
                     else:
                         x = str(c1[0])+':'+str(c1[1])+':'+str(c1[2])+':'+str(c1[3])+':'+str(c1[4])
@@ -116,6 +115,7 @@ def handler(clientsocket, clientaddr):
                 f2.close()
             finally:
                 lock.release() 
+            
             break
 
         # SIGNING IN
@@ -125,6 +125,8 @@ def handler(clientsocket, clientaddr):
 
             print un
             print pw
+            w = '0'
+            l = '0'
             si = False
             lock.acquire()
             try:
@@ -141,6 +143,8 @@ def handler(clientsocket, clientaddr):
                     if str(c1[0]) == str(un) and str(c1[1])== str(pw) and str(c1[2]) == 'OFFLINE':
                         print 'login success!'
                         x = str(c1[0])+':'+str(c1[1])+':ONLINE:'+str(c1[3])+':'+str(c1[4])
+                        w = str(c1[3])
+                        l = str(c1[4])[:-1]
                         f2.write(x)
                         clientsocket.send('SignedIn')
                         si = True
@@ -164,13 +168,17 @@ def handler(clientsocket, clientaddr):
                     for c in content:
                         f.write(c)
 
+
+                    un = (str(un) + '; Wins; '+w+' ; Loses; '+l)
+
+
                 f.close()
                 f2.close()
             finally:
                 lock.release()
-
+            
         elif dataList[0] == 'SignUp':
-            un = dataList[1]
+            un = dataList[1] 
             pw = dataList[2]
             write = True
             lock.acquire()
@@ -194,14 +202,17 @@ def handler(clientsocket, clientaddr):
                     print 'writing'
                     f = open('users.dat','a')
                     f.write(str(un)+':'+str(pw)+':ONLINE:0:0\n')
+                    un = (str(un) + '; Wins; 0 ; Loses; 0')
                     clientsocket.send('SignedIn')
                 f.close()
             finally:
                 lock.release()
-
+                
+            
         
         elif dataList[0] == 'Matchup' :
             print 'MATCHUP'
+
             matchup_address.append(str(un))
             matchup_sockets.append((clientsocket,str(un)))
 
