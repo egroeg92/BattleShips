@@ -63,6 +63,11 @@ class Game(object):
         dw1 = pygame.image.load('images/darkwater1.png').convert()
         dw2 = pygame.image.load('images/darkwater2.png').convert()
 
+        c1 = pygame.image.load('images/coral1.png').convert()
+        c2 = pygame.image.load('images/coral2.png').convert()
+
+        note = pygame.image.load('images/notifier.png').convert()
+
         
         
         images = []
@@ -105,6 +110,10 @@ class Game(object):
         images.append(w2)
         images.append(dw1)
         images.append(dw2)
+
+        images.append(c1)
+        images.append(c2)
+        images.append(note)
         
         self.gameBoard = Board(coral,images)
         self.updateVisibility()

@@ -69,6 +69,11 @@ class Board:
         self.dw1= images[32]
         self.dw2= images[33]
 
+        self.c1 = images[34]
+        self.c2 = images[35]
+
+        self.note = images[36]
+
         self.x = -1
         self.y = -1 
 
@@ -99,13 +104,9 @@ class Board:
     def getSquare(self, x, y):
         return self.board[x][y]
     
-    def oceanAnimate(self):
-        global o
-
 
 
     def animate(self,surface,t):
-        # print self.tick
 
         self.tick = t
         for x in range(30):
@@ -119,8 +120,10 @@ class Board:
                         pygame.draw.rect(surface, GREEN, [x*20 + x*1 + d, y*20 + y*1 + 10, 20, 20])
                     elif (vis):
                         if self.tick == 0:
+                            # print 'w1'
                             surface.blit(self.w1,(x*20 + x*1 + d ,y*20 + y*1 + 10))
                         else:
+                            # print 'w2'
                             surface.blit(self.w2,(x*20 + x*1 + d ,y*20 + y*1 + 10))
 
                         # pygame.draw.rect(surface, LIGHTSEA, [x*20 + x*1 + d, y*20 + y*1 + 10, 20, 20])
@@ -133,7 +136,12 @@ class Board:
                         # pygame.draw.rect(surface, DARKSEA, [x*20 + x*1 + d, y*20 + y*1 + 10, 20, 20])
                       
                 elif (obj.getClassName() == "Coral"):
-                    pygame.draw.rect(surface, CORAL, [x*20 + x*1 + d, y*20 + y*1 + 10, 20, 20])
+                    if self.tick == 0:
+                            # print 'w1'
+                        surface.blit(self.c1,(x*20 + x*1 + d ,y*20 + y*1 + 10))
+                    else:
+                        surface.blit(self.c2,(x*20 + x*1 + d ,y*20 + y*1 + 10))
+
                 
                 elif (obj.getClassName() != "Coral"):
                     if (aRange):
@@ -192,7 +200,13 @@ class Board:
                     #     pygame.draw.rect(surface, DARKSEA, [x*20 + x*1 + d, y*20 + y*1 + 10, 20, 20])
                       
                 elif (obj.getClassName() == "Coral"):
-                    pygame.draw.rect(surface, CORAL, [x*20 + x*1 + d, y*20 + y*1 + 10, 20, 20])
+                    if self.tick == 0:
+                            # print 'w1'
+                        surface.blit(self.c1,(x*20 + x*1 + d ,y*20 + y*1 + 10))
+                    else:
+                        surface.blit(self.c2,(x*20 + x*1 + d ,y*20 + y*1 + 10))
+
+                
                 elif (obj.getClassName() != "Coral"):
                     if (aRange):
                         pygame.draw.rect(surface,GREEN, [x*20 + x*1 + d, y*20 + y*1 + 10, 20, 20])
@@ -343,5 +357,7 @@ class Board:
 
         if self.x != -1 and self.y != -1:
             # print x, y
-            pygame.draw.rect(surface, RED, [self.x*20 + self.x*1 + d, self.y*20 + self.y*1 + 10, 20, 20])
+            surface.blit(self.note,(self.x*20 + self.x*1 + d, self.y*20 + self.y*1 + 10))
+
+            # pygame.draw.rect(surface, RED, [self.x*20 + self.x*1 + d, self.y*20 + self.y*1 + 10, 20, 20])
  
