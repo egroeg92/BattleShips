@@ -11,7 +11,8 @@ class Base:
         self.color = color
         self.positionList = positionList
         self.health = health
-    
+        self.selected = False
+
     def getClassName(self):
         return "Base"
     
@@ -63,6 +64,12 @@ class Base:
     # Set a health specified by the index
     def setArmourIndex(self, index, newhealth):
     	self.armour[index] = newhealth
+
+    def isSelected(self):
+        return self.selected;
+    
+    def setSelected(self, var):
+        self.selected = var  
 """
 # Test
 b = Base([(1,2), (3,4)], [2,3,4,5], 1,2,3,4)

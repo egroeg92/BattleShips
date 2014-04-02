@@ -83,6 +83,12 @@ def listener(clientsocket,screen):
             ship.setSelected(False)
             # ship.move(int(dataList[2]))
             turn = True
+        elif dataList[0] == 'Repair':
+            ship = op_shiplist[int(dataList[1])]
+            game.repairShip(ship)
+            updateBoard(game.getBoard(),screen)
+            turn = True
+
         
         elif dataList[0] == 'Turn':
             #print'turning'
@@ -276,7 +282,10 @@ def main(clientsocket, opp,user,player):
     buttonExit = pygbutton.PygButton((WINDOWWIDTH/2+30, 700, 120, 30), 'Quit')
     buttonPositionShips = pygbutton.PygButton((WINDOWWIDTH/2-150, 700, 120, 30), 'Done Positioning')
     
-    
+
+    buttonRepair = pygbutton.PygButton((70, WINDOWHEIGHT - 40, 130, 30), 'Repair ')
+
+        
     positiontext = FONT.render("Click on your ships to position them", 1, (255,255,255))
     
     ## start the listener thread if playing not offline
@@ -293,11 +302,20 @@ def main(clientsocket, opp,user,player):
     global shiplist
     global op_shiplist
     
+    global baselist
+    global op_baselist
+    
     shiplist = []
     op_shiplist = []
-    
+
+    baselist = []
+    op_baselist = [] 
+
     shiplist = game.getCurrentPlayer().getShipList()
     op_shiplist = game.getOpponent().getShipList()
+
+    baselist = game.getCurrentPlayer().getBase().getPositionList()
+    op_baselist = game.getOpponent().getBase().getPositionList()
 
     turn = True
 
@@ -317,6 +335,8 @@ def main(clientsocket, opp,user,player):
     cannon = False
     torpedo = False
     hcannon = False 
+
+
 
 
     global op_positionedShips
@@ -440,6 +460,53 @@ def main(clientsocket, opp,user,player):
                             torpedo = True
             for button in buttons:
                 button.draw(screen)
+
+        # print turnType 
+        if (turnType == "baseRepair"):
+            screen.fill(BLACK);
+            buttons = []
+            dockedships = []
+            p1 = ()
+            p2 = ()
+            p3 = ()
+
+            # print "Current Player is selected: ", game.getCurrentPlayer().getBase().isSelected()
+            # print "Opponent Player is selected: ", game.getOpponent().getBase().isSelected()                                
+            
+            if game.getCurrentPlayer().getBase().isSelected() == True:
+                for (x,y) in baselist:
+                    obj = game.getBoard().getSquare(x,y).getObjectOn()
+                    if obj != None and obj.getClassName() == "Base":
+                        p1 = (x, y-1) 
+                        p2 = (x, y+1)
+                        
+                        if Player1:
+                            p3 = (x+1, y)
+                        else:
+                            p3 = (x-1, y)
+
+                        
+                        for ship in shiplist:
+                            ship.setDocked(False)
+                            
+                        for ship in shiplist:
+                            poslist = ship.getPositionList()
+                            # print poslist
+                            if (p1 in poslist) or (p2 in poslist) or (p3 in poslist) and ship not in dockedships:
+                                #print ship.getNaming()
+                                dockedships.append(ship)
+                                ship.setDocked(True)
+                                # print 'repairable ' ,ship.getName()
+
+
+
+            for ship in shiplist:
+                if ship in dockedships and ship.isSelected() and sum(ship.getHealth()) < ship.getHealthSum():
+                    
+                    buttonRepair.draw(screen)
+
+
+            # print 'type',turnType               
 
 
 ########################################################
@@ -1012,6 +1079,25 @@ def main(clientsocket, opp,user,player):
                                     game.updateRange("",False)
                                     screen.fill(BLACK)
                 
+                elif turnType == "repairBoat":                  
+                    
+                    if game.getCurrentPlayer().getBase().isSelected() == True:
+                        for ship in shiplist:
+                            if ship.isSelected():
+                                game.repairShip(ship)
+                                print ship.getHealth()
+                                
+                                turnType = ""
+                                game.getCurrentPlayer().getBase().setSelected(False)
+                                ship.setSelected(False)
+                                screen.fill(BLACK);
+                                turn = False
+                                if not offline:
+                                    clientsocket.send("Repair:"+str(shiplist.index(ship)))
+                                 
+                     
+
+               
                 #######################
                 ## SETTING TURN TYPES##
                 #######################    
@@ -1073,7 +1159,11 @@ def main(clientsocket, opp,user,player):
                     x,y = event.pos
                     x = (x - d) / 21
                     y = (y - 10) / 21
-                                
+               
+                elif 'click' in buttonRepair.handleEvent(event) and turnType == 'baseRepair':
+                    turnType = "repairBoat"
+
+
                 elif event.type == pygame.MOUSEBUTTONUP:
                     x, y = event.pos
                     x = (x - d) / 21
@@ -1106,8 +1196,20 @@ def main(clientsocket, opp,user,player):
                     if total == 0 and positioned:
                         screen.fill(BLACK);
                         for sh in shiplist:
-                            sh.setSelected(False) 
-                                
+                            sh.setSelected(False)
+
+                    if (x >= 0 and x <= 29 and y >= 0 and y <= 29):
+                        obj = game.getBoard().getSquare(x,y).getObjectOn()
+                        if obj == None:
+                            turnType = ''
+                            print "hi"
+                            print 
+                        elif obj.getClassName() == "Base" and turnType != "position" and (x,y) not in op_baselist:
+                            print " hello"
+                            obj.setSelected(True)
+                            turnType = "baseRepair"
+                            
+                    print turnType
                 if turnType != "move" and turnType != "positionActive" and turnType != "turn" and turnType != "cannon" and turnType != "heavycannon" and turnType != "torpedo":
 
                     updateBoard(game.getBoard(),screen)
@@ -2039,4 +2141,4 @@ if __name__ == '__main__':
     global offline
     offline = True
     # main('')
-    main('offline',1,1,True)
+    main('offline',1,1,False)

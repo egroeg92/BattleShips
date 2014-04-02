@@ -456,6 +456,17 @@ class Game(object):
                             return "ship hit : FINAL HEALTH: " + str(health)
         self.updateVisibility()
     
+    def repairShip(self, ship):
+        i = 0
+        squarehealth = ship.getSquareHealth()
+        health = ship.getHealth()
+        for h in health:
+            if h != squarehealth:
+                health[i] = squarehealth
+                break
+            else:
+                i = i + 1
+
     def updateRange(self, type, update):
         for x in range(30):
             for y in range(30):

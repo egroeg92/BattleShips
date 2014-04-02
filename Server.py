@@ -296,6 +296,8 @@ def handler(clientsocket, clientaddr):
             oppSock.send('HCannon:'+dataList[1]+':'+dataList[2]+':'+dataList[3])
         elif dataList[0] == 'Torpedo':
             oppSock.send('Torpedo:'+dataList[1]+':'+dataList[2]+':'+dataList[3])
+        elif dataList[0] == 'Repair':
+            oppSock.send('Repair:'+dataList[1])
             
             
         

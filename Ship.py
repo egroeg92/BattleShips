@@ -20,7 +20,7 @@ class Ship(object):
         self.selected = False
         self.color = color
         self.weapon = weapon
-        
+
     def getRadarX(self):
         return self.radarX
 
@@ -31,6 +31,8 @@ class Ship(object):
         for w in self.weapon:
             if w.getClass() == type:
                 return w
+
+
 
     def getCannonRange(self):
         #print self.getWeapon("cannon")
@@ -606,11 +608,23 @@ class Cruiser(Ship):
     def __init__(self, position, orientation, color, weapon):
         Ship.__init__(self, 5, position, orientation, color, weapon, 10)
         self.health = [2,2,2,2,2]
+        self.healthSum = 10
         self.speed = sum(self.health)
         self.armour = 2   
         self.mines = 0
         self.turnRadius = 1  
-        self.name = 'cruiser'      
+        self.name = 'cruiser'
+        self.docked = False
+        self.healthSum = 10
+    
+    def getHealthSum(self):
+        return self.healthSum
+
+    def getDocked(self):
+        return docked
+    def setDocked(self,var):
+        self.docked = var
+
     def getSubclass(self):
         return "Cruiser"
     def getSpeed(self):
@@ -621,6 +635,9 @@ class Cruiser(Ship):
 
     def getHealth(self):
         return self.health
+
+    def getSquareHealth(self):
+        return 2
 
     # Gets the class name
     def getName(self):
@@ -634,8 +651,23 @@ class Destroyer(Ship):
         self.speed = sum(self.health) * 2
         self.mines = 0
         self.turnRadius = 1
-        self.name = 'destroyer'        
+        self.name = 'destroyer'
+        self.docked = False
+        self.healthSum = 4
+    
+    def getHealthSum(self):
+        return self.healthSum
+
         
+    def getDocked(self):
+        return docked
+    def setDocked(self,var):
+        self.docked = var
+        
+        
+    def getSquareHealth(self):
+        return 1
+
     def getSubclass(self):
         return "Destroyer"
     
@@ -661,7 +693,17 @@ class TorpedoBoat(Ship):
         self.mines = 0
         self.turnRadius = 2
         self.name = 'torpedo'        
+        self.docked = False
+        self.healthSum = 3
+    
+    def getHealthSum(self):
+        return self.healthSum
         
+    def getDocked(self):
+        return docked
+    def setDocked(self,var):
+        self.docked = var
+    
     def getSubclass(self):
         return "TorpedoBoat"
     
@@ -673,6 +715,9 @@ class TorpedoBoat(Ship):
 
     def getHealth(self):
         return self.health
+
+    def getSquareHealth(self):
+        return 1        
 
     # Gets the class name
     def getName(self):
@@ -688,6 +733,17 @@ class RadarBoat(Ship):
         self.mines = 0
         self.turnRadius = 2
         self.name ='radar'
+        self.docked = False
+        self.healthSum = 3
+    
+    def getHealthSum(self):
+        return self.healthSum
+        
+    def getDocked(self):
+        return docked
+    def setDocked(self,var):
+        self.docked = var
+
         
     def getSubclass(self):
         return "RadarBoat"
@@ -701,6 +757,9 @@ class RadarBoat(Ship):
     def getHealth(self):
         return self.health
 
+    def getSquareHealth(self):
+        return 1        
+
     # Gets the class name
     def getName(self):
         return self.__class__.__name__
@@ -713,7 +772,17 @@ class MineLayer(Ship):
         self.speed = sum(self.health)*3/2
         self.mines = 5
         self.turnRadius = 1
-        self.name = 'mine'        
+        self.name = 'mine'
+        self.docked = False
+        self.healthSum = 4
+    
+    def getHealthSum(self):
+        return self.healthSum
+        
+    def getDocked(self):
+        return docked
+    def setDocked(self,var):
+        self.docked = var        
         
     def getSubclass(self):
         return "MineLayer"
@@ -726,6 +795,9 @@ class MineLayer(Ship):
     def getHealth(self):
         return self.health
 
+    def getSquareHealth(self):
+        return 2        
+
     # Gets the class name
     def getName(self):
         return self.__class__.__name__
@@ -737,7 +809,8 @@ class MineLayer(Ship):
         self.mines = self.mines - 1
 
     def increaseMineCount(self):
-        self.mines = self.mines + 1	
+        self.mines = self.mines + 1
+
 """
 # Testing MineLayer
 a = MineLayer(8,'W', 8,10,2,1,2,3,4,9,5)
