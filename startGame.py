@@ -9,6 +9,12 @@ from Ship import Ship
 from PlayerState import PlayerState
 from Game import Game
 
+import Tkinter as tk
+from Tkinter import *
+import os
+
+
+
 FPS = 30
 WINDOWWIDTH = 800
 WINDOWHEIGHT = 750
@@ -219,10 +225,14 @@ def listener(clientsocket,screen):
 
 #         if dataList[0] == 'Move'
         
+def handler():
+    pass
 
         
 def main(clientsocket, opp,user,player):
-    
+    pygame.mixer.init()
+    pygame.mixer.music.load('images/titanic.WAV')
+    pygame.mixer.music.play()    
     # for offine play (for debugging)
 
     global win
@@ -248,8 +258,22 @@ def main(clientsocket, opp,user,player):
         
 
     ## creating the screen
+    global root
+    root = tk.Tk()
+    root.wm_title("BattleShip")
+    root.protocol("WM_DELETE_WINDOW",handler)
+    embed = tk.Frame(root, width = WINDOWWIDTH +30, height = WINDOWHEIGHT) #creates embed frame for pygame window
+    embed.grid(columnspan = (600), rowspan = 500) # Adds grid
+    embed.pack(side = LEFT) #packs window to the left
+    buttonwin = tk.Frame(root, width = 200, height = 0)
+    buttonwin.pack(side = LEFT)
+    os.environ['SDL_WINDOWID'] = str(embed.winfo_id())
+    os.environ['SDL_VIDEODRIVER'] = 'windib'
+
+    
 
     screen = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
+    
     pygame.display.set_caption('Battle Ships')
     
     ## Game object
@@ -350,6 +374,10 @@ def main(clientsocket, opp,user,player):
 ##                                                 ##
 #####################################################
     while True:
+
+
+
+
         if gameOver:
             endGame.start(clientsocket,user,opp,win)
             # Matchup.start(clientsocket,user)
@@ -1205,7 +1233,6 @@ def main(clientsocket, opp,user,player):
                             print "hi"
                             print 
                         elif obj.getClassName() == "Base" and turnType != "position" and (x,y) not in op_baselist:
-                            print " hello"
                             obj.setSelected(True)
                             turnType = "baseRepair"
                             
@@ -1215,6 +1242,7 @@ def main(clientsocket, opp,user,player):
                     updateBoard(game.getBoard(),screen)
                   
 def updateBoard(gameBoard,screen):
+    root.update()
     gameBoard.paint(screen)
     pygame.display.update()
 
