@@ -58,10 +58,26 @@ def handler(clientsocket, clientaddr):
             print 'oppAddr = '+ str(oppAddr)
             print 'oppSock = ' + str(oppSock)
 
+        elif data == 'WinGame':
+            n = un.split(';')
+            w = int(n[2]) + 1
+            print w
+            un = (n[0] + '; Wins; '+str(w)+' ; Loses; '+n[4])
+            print 'WIN ',un
+
         elif data == 'LoseGame':
             print 'LoseGame'
+
             oppSock.send('Win')
             clientsocket.send('Lose')
+
+            n = un.split(';')
+            l = int(n[4]) + 1
+            print l
+            un = (n[0] + '; Wins; '+n[2]+' ; Loses; '+str(l))
+            print 'Lose ',un
+
+
         elif data == 'BreakListener':
             clientsocket.send('BreakListener')
 
@@ -75,8 +91,8 @@ def handler(clientsocket, clientaddr):
             for x in matchup_sockets:
                 x[0].send(str(matchup_address))
 
-            un = dataList[1]
-            print un
+            user = dataList[1]
+            print user
             lock.acquire()
             try:
                 f = open('users.dat','r+')
@@ -89,13 +105,18 @@ def handler(clientsocket, clientaddr):
                     c1 =c.split(':')
                     print str(c1[0])
                     print str(c1[1])
-                    if str(c1[0]) == str(un):
-                        x = str(c1[0])+':'+str(c1[1])+':OFFLINE:'+str(c1[3])+':'+str(c1[4])
+                    if str(c1[0]) == str(user):
+                        stri = un.split(';')
+                        w = stri[2]
+                        w = w.replace(' ','')
+                        l = stri[4]
+                        l = l.replace(' ','')
+                        l = l.replace('\n','')
+                        x = str(c1[0])+':'+str(c1[1])+':OFFLINE:'+w+':'+l+'\n'
                         f2.write(x)
                     else:
                         x = str(c1[0])+':'+str(c1[1])+':'+str(c1[2])+':'+str(c1[3])+':'+str(c1[4])
                         
-                        print "NO"
                         f2.write(x)
 
                 f.close()
@@ -144,7 +165,7 @@ def handler(clientsocket, clientaddr):
                         print 'login success!'
                         x = str(c1[0])+':'+str(c1[1])+':ONLINE:'+str(c1[3])+':'+str(c1[4])
                         w = str(c1[3])
-                        l = str(c1[4])[:-1]
+                        l = str(c1[4])
                         f2.write(x)
                         clientsocket.send('SignedIn')
                         si = True
@@ -168,7 +189,8 @@ def handler(clientsocket, clientaddr):
                     for c in content:
                         f.write(c)
 
-
+                    l = l.replace('\n','')
+                    print "YOOO",l
                     un = (str(un) + '; Wins; '+w+' ; Loses; '+l)
 
 

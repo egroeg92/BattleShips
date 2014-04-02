@@ -77,6 +77,11 @@ def listener(clientsocket,SCREEN):
             print 'people'+people
             if user == 'null':
                 user = temp_people_list[-1]
+            if user == '\'\'':
+                import string
+                import random
+                user = ''.join(random.choice(string.lowercase) for x in range(5))
+                print user
             for x in temp_people_list:
                 if x != user:
                     people_list.append(x)

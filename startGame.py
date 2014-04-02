@@ -3,6 +3,7 @@ from pygame.locals import *
 from socket import *
 import threading
 import Matchup
+import endGame
 from Board import Board
 from Ship import Ship
 from PlayerState import PlayerState
@@ -25,10 +26,11 @@ VISIBLE = True
 FONT = pygame.font.SysFont("Arial", 14)
 d = 85
 def listener(clientsocket,screen):
-    global active
     global turn
     global op_positioned
     global op_positionedShips
+    global gameOver
+    global win
     # global turnType
     while True:
         data = clientsocket.recv(1024)
@@ -39,16 +41,17 @@ def listener(clientsocket,screen):
 
         if data == 'Win':
             print 'winner'
-            active = False
-            # Matchup.start(clientsocket,'username')
-
+            clientsocket.send("WinGame")
+            win = True
+            gameOver = True
             break
+
         if data == 'Lose':
             print 'loser'
-            # Matchup.start(clientsocket,'username')
-
-            active = False
+            win = False
+            gameOver = True
             break
+
         dataList = []
 
         dataList = data.split(':')
@@ -216,6 +219,8 @@ def main(clientsocket, opp,user,player):
     
     # for offine play (for debugging)
 
+    global win
+    win = False
     global offline
     offline = False
     if clientsocket == 'offline':
@@ -280,10 +285,6 @@ def main(clientsocket, opp,user,player):
         l_thread = threading.Thread(target = listener, args = (clientsocket,screen))
         l_thread.start()
 
-    ## game active
-
-    global active
-    active = True
 
     ## turn is true if its your turn, false if its the opponents turn
 
@@ -319,24 +320,35 @@ def main(clientsocket, opp,user,player):
 
 
     global op_positionedShips
-    op_positionedShips = []    
+    op_positionedShips = []
+
+    global gameOver
+    gameOver = False
 #####################################################
 ##                                                 ##
 ##              MAIN GAME LOOP                     ##
 ##                                                 ##
 #####################################################
     while True:
-        print len(shiplist)
+        if gameOver:
+            endGame.start(clientsocket,user,opp,win)
+            # Matchup.start(clientsocket,user)
+            break
+        # print user
         for s in shiplist:
             if(sum(s.getHealth()) == 0):
                 shiplist.remove(s)
+
+
 
         for s in op_shiplist:
             if(sum(s.getHealth()) == 0):
                 op_shiplist.remove(s)
 
-        if active != True:
-            break
+        if len(shiplist)==0:
+            # lose
+            gameOver = True
+            clientsocket.send("LoseGame")
 
         ## if offline its always your turn, (for debugging)
         if offline:
@@ -457,8 +469,10 @@ def main(clientsocket, opp,user,player):
                     if offline:
                         sys.exit();
                     else:
+                        gameOver = True
                         clientsocket.send("LoseGame")
-                        clientsocket.send("WinGame")
+
+
 
                 ## MOVING
 

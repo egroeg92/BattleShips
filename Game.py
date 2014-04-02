@@ -285,7 +285,7 @@ class Game(object):
                             self.updateVisibility()
 
                             # object.updateSpeed()
-                            return "shit sunk :"+object.getName()
+                            return "ship sunk :"+object.getName()
 
 
                         object.updateSpeed()
@@ -441,7 +441,7 @@ class Game(object):
                             if sum(health) == 0:
                                 object.destroyShip(self.gameBoard)
                                 self.updateVisibility()
-                                return "shit sunk :"+object.getName()
+                                return "ship sunk :"+object.getName()
 
                             object.updateSpeed()                            
                             return "ship hit : REMAINING HEALTH: " + str(health)                             
