@@ -37,7 +37,6 @@ def listener(clientsocket,screen):
     global op_positionedShips
     global gameOver
     global win
-    # global listbox
     # global turnType
     while True:
         data = clientsocket.recv(1024)
@@ -83,7 +82,6 @@ def listener(clientsocket,screen):
                 string =  'collision at '+ str(x)  +' ' +str(y)
                 notifier = FONT.render(string, 1, (255,255,255))
                 screen.blit(notifier, (200, WINDOWHEIGHT - 100))
-                # listbox.insert(END, string)               
                 game.getBoard().setNot(x,y,screen)
                 updateBoard(game.getBoard(),screen)
 
@@ -244,6 +242,7 @@ def updateFrame():
 def main(clientsocket, opp,user,player):
     pygame.mixer.init()
     pygame.mixer.music.load('images/titanic.WAV')
+    # explosion = pygame.mixer.Sound.load('images/Exploding.WAV')
     pygame.mixer.music.play()    
     # for offine play (for debugging)
 
@@ -270,33 +269,6 @@ def main(clientsocket, opp,user,player):
         
 
     ## creating the screen
-    global root
-    root = tk.Tk()
-    root.wm_title("BattleShip")
-    root.protocol("WM_DELETE_WINDOW",handler)
-    embed = tk.Frame(root, width = WINDOWWIDTH +30, height = WINDOWHEIGHT) #creates embed frame for pygame window
-    embed.grid(columnspan = (600), rowspan = 500) # Adds grid
-    embed.pack(side = LEFT) #packs window to the left
-    
-    global buttonwin
-    buttonwin = tk.Frame(root, width = 600, height = 500)
-    buttonwin.pack(side = TOP)
-
-    messageFrame = tk.Frame(buttonwin,width = 200, height = 0)
-    messageFrame.pack(side = TOP)
-    scrollbar = Scrollbar(messageFrame)
-    scrollbar.pack(side=RIGHT, fill=Y)
-    global listbox
-    listbox = Listbox(messageFrame,width = 50)
-    listbox.pack(side=TOP,fill = Y)
-    listbox.insert(END,'GAME EVENTS:')
-
-
-    listbox.config(yscrollcommand=scrollbar.set)
-    scrollbar.config(command=listbox.yview)
-
-    os.environ['SDL_WINDOWID'] = str(embed.winfo_id())
-    os.environ['SDL_VIDEODRIVER'] = 'windib'
 
     screen = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
     
@@ -651,7 +623,6 @@ def main(clientsocket, opp,user,player):
                                                 string =  'collision at '+ str(x) +str(y)
                                                 notifier = FONT.render(string, 1, (255,255,255))
                                                 # screen.blit(notifier, (200, WINDOWHEIGHT - 100))
-                                                listbox.insert(END, string)
                                                 
                                                 updateBoard(game.getBoard(),screen)
 
@@ -675,8 +646,8 @@ def main(clientsocket, opp,user,player):
                                                 string =  'collision at '+ str(x) +str(y)
                                                 notifier = FONT.render(string, 1, (255,255,255))
                                                 screen.blit(notifier, (200, WINDOWHEIGHT - 100))
-                                                listbox.insert(END, string)
                                                 
+
                                                 updateBoard(game.getBoard(),screen)
 
                                                 print "CO",colx,coly
@@ -700,7 +671,6 @@ def main(clientsocket, opp,user,player):
                                                 string =  'collision at '+ str(x) +str(y)
                                                 notifier = FONT.render(string, 1, (255,255,255))
                                                 screen.blit(notifier, (200, WINDOWHEIGHT - 100))
-                                                listbox.insert(END, string)
                                                 
                                                 updateBoard(game.getBoard(),screen)
 
@@ -724,7 +694,6 @@ def main(clientsocket, opp,user,player):
                                                 string =  'collision at '+ str(x) +str(y)
                                                 notifier = FONT.render(string, 1, (255,255,255))
                                                 screen.blit(notifier, (200, WINDOWHEIGHT - 100))
-                                                listbox.insert(END, string)
                                                 
                                                 updateBoard(game.getBoard(),screen)
 
@@ -952,7 +921,6 @@ def main(clientsocket, opp,user,player):
                                             string =  'turn collision at '+ str(x) +str(y)
                                             notifier = FONT.render(string, 1, (255,255,255))
                                             screen.blit(notifier, (200, WINDOWHEIGHT - 100))
-                                            listbox.insert(END, string)
                                             
                                             updateBoard(game.getBoard(),screen)
 
@@ -975,8 +943,6 @@ def main(clientsocket, opp,user,player):
                                             string =  'turn collision at '+ str(x) +str(y)
                                             notifier = FONT.render(string, 1, (255,255,255))
                                             screen.blit(notifier, (200, WINDOWHEIGHT - 100))
-                                            listbox.insert(END, string)
-                                            
                                             
 
                                             updateBoard(game.getBoard(),screen)
@@ -1029,9 +995,7 @@ def main(clientsocket, opp,user,player):
                                     game.updateRange("cannon", False)
                                     notifier = FONT.render(resultString, 1, (255,255,255))
                                     screen.blit(notifier, (200, WINDOWHEIGHT - 100))
-                                    listbox.insert(END, resultString)
                                     
-                                            
                                     updateBoard(game.getBoard(),screen)
                                     if not offline:
                                         clientsocket.send("Cannon:"+str(shiplist.index(ship))+':'+str(x)+":"+str(y))
@@ -1084,9 +1048,7 @@ def main(clientsocket, opp,user,player):
                                     screen.fill(BLACK);
                                     game.updateRange("heavycannon", False)
                                     notifier = FONT.render(resultString, 1, (255,255,255))
-                                    listbox.insert(END, resultString)
                                     
-                                            
                                     #print resultString
                                     screen.blit(notifier, (200, WINDOWHEIGHT - 100))
                                     updateBoard(game.getBoard(),screen)
@@ -1140,8 +1102,6 @@ def main(clientsocket, opp,user,player):
                                     screen.fill(BLACK);
                                     game.updateRange("torpedo", False)
                                     notifier = FONT.render(resultString, 1, (255,255,255))
-                                    listbox.insert(END, resultString)
-                                    
                                     
                                     screen.blit(notifier, (200, WINDOWHEIGHT - 100))
                                     
@@ -1289,8 +1249,7 @@ def main(clientsocket, opp,user,player):
                     updateBoard(game.getBoard(),screen)
                   
 def updateBoard(gameBoard,screen):
-    root.update()
-
+    
     gameBoard.paint(screen)
     pygame.display.update()
 
