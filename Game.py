@@ -228,9 +228,20 @@ class Game(object):
                 self.updateVisibility()
                 self.updateVisibilityRadar()
 
-
-
-        
+    def mineDamagedShip(self, ship, x, y, backwards):
+        if ship.getName() != "MineLayer":
+            health = ship.getHealth()
+            if backwards:
+                health[-1] = 0
+                health[-2] = 0
+            else:
+                health[0] = 0
+                health[1] = 0
+            if sum(health) == 0:
+                ship.destroyShip(self.gameBoard)
+                self.updateVisibility()
+                self.updateVisibilityRadar()
+    
     def moveShip(self, x1, y1, visible):
         if not visible:
             #print 'COLLISION'
@@ -495,6 +506,40 @@ class Game(object):
                             return "ship hit : FINAL HEALTH: " + str(health)
         self.updateVisibility()
         self.updateVisibilityRadar()
+
+    def dropMine(self, x, y):
+        objectOn = self.gameBoard.getSquare(x,y).getObjectOn()
+        if objectOn == None:
+            return "Mine dropped successful!" 
+
+        # if mine is not dropped on base or coal, or a ship, or another mine then it cant be droppped                       
+        elif objectOn.getClassName() == "Ship" or objectOn.getClassName() == "Coral"  or objectOn.getClassName() == "Base" or objectOn.getClassName() == "Mine": 
+                return "Cant drop mine at selected location"  
+        
+
+    def dropMineOnBoard(self, mine, position):
+        # Add mind to the sqaure object
+        x = position[0]
+        y = position[1]
+        square = self.gameBoard.getSquare(x,y) 
+        self.gameBoard.getSquare(x,y).setObjectOn(mine)
+        print "MINE DROOPPED AT"
+
+    def removeMine(self, x, y):
+        print"Removing mine from board"
+        x = x
+        y = y
+        square = self.gameBoard.getSquare(x,y)
+        self.gameBoard.getSquare(x,y).removeObjectOn()
+
+    def PickUpMine(self, x, y):
+        objectOn = self.gameBoard.getSquare(x,y).getObjectOn()
+        if objectOn == None:
+            return 1
+        elif objectOn.getClassName() == "Mine":
+            return 0
+        else:
+            return 1
     
     def repairShip(self, ship):
         i = 0
@@ -542,6 +587,7 @@ class Game(object):
     def updateVisibility(self):
 
         radarList = []
+        sonarList = []
         b = self.player1.getBase().getPositionList()
         #print 'base coords ', b
 
@@ -605,18 +651,22 @@ class Game(object):
                 if (ship.getOrientation() == "E"):
                     for x1 in range(l[0][0] - 3, l[1][0] + 4):
                         for y1 in range(l[0][1] - 2, l[0][1] + 3):
+                            sonarList.append((x1, y1))
                             radarList.append((x1, y1))
                 elif ( ship.getOrientation() == "W"):
                     for x1 in range(l[1][0] - 3, l[0][0] + 4):
                         for y1 in range(l[0][1] - 2, l[0][1] + 3):
+                            sonarList.append((x1, y1))
                             radarList.append((x1, y1))
                 elif (ship.getOrientation() == "N" ):
                     for x1 in range(l[0][0] - 2, l[0][0] + 3):
                         for y1 in range(l[1][1] - 3, l[0][1] + 4):
+                            sonarList.append((x1, y1))
                             radarList.append((x1, y1))
                 elif (ship.getOrientation() == "S"):
                     for x1 in range(l[0][0] - 2, l[0][0] + 3):
                         for y1 in range(l[0][1] - 3, l[1][1] + 4):
+                            sonarList.append((x1, y1))
                             radarList.append((x1, y1))
             elif ship.getSubclass() == "Kamikaze":
                 l = ship.getPositionList()
@@ -639,6 +689,12 @@ class Game(object):
                         # print 'dfd'
                         self.gameBoard.getSquare(i,j).setVisible(True)
 
+        for i in range(30):
+            for j in range(30):
+                if(i,j) in sonarList:
+                    self.gameBoard.getSquare(i,j).setSonarVisible(True)
+                else:
+                    self.gameBoard.getSquare(i,j).setSonarVisible(False)
 
 
                 # self.gameBoard.getSquare(i,j).setVisible(True)

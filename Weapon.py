@@ -50,3 +50,5 @@ class Mine(Weapon):
 		return "mine"
 	def getPosition(self):
 		return self.position
+	def getClassName(self):
+		return "Mine"

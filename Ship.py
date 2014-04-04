@@ -103,6 +103,102 @@ class Ship(object):
                         rlist.append((i, j))  
                 
         return rlist
+    def getdroppingRange(self, position):
+        rlist   =   []
+        first   =   position[0]
+        second  =   position[1]
+        x       =   first[0]
+        y       =   first[1]
+        i       =   second[0]
+        j       =   second[1]
+        #print position
+        if (self.getOrientation() == "E"):
+            tuple1  =   (x+1, y)
+            tuple2  =   (x, y+1)
+            tuple3  =   (x, y-1)
+            tuple4  =   (i-1, j)
+            tuple5  =   (i, j+1)
+            tuple6  =   (i, j-1)
+            rlist.append(tuple1)
+            rlist.append(tuple2)
+            rlist.append(tuple3)
+            rlist.append(tuple4)
+            rlist.append(tuple5)
+            rlist.append(tuple6)
+            
+        elif (self.getOrientation() == "S"): # check using tail
+            p = y
+            y = j
+            j = p
+            
+            tuple1  =   (x+1, y)
+            tuple2  =   (x-1, y)
+            tuple3  =   (i+1, j)
+            tuple4  =   (i-1, j)
+            tuple5  =   (x, y-1)
+            tuple6  =   (i, j+1)
+            rlist.append(tuple1)
+            rlist.append(tuple2)
+            rlist.append(tuple3)
+            rlist.append(tuple4)
+            rlist.append(tuple5)
+            rlist.append(tuple6)
+
+        elif (self.getOrientation() == "N"): # check using head
+            print "north"
+            p = y
+            y = j
+            j = p
+            
+            tuple1  =   (x+1, y)
+            tuple2  =   (x-1, y)
+            tuple3  =   (i+1, j)
+            tuple4  =   (i-1, j)
+            tuple5  =   (x, y+1)
+            tuple6  =   (i, j-1)
+            rlist.append(tuple1)
+            rlist.append(tuple2)
+            rlist.append(tuple3)
+            rlist.append(tuple4)
+            rlist.append(tuple5)
+            rlist.append(tuple6)
+
+        elif (self.getOrientation() == "W"): # check using tail
+            tuple1  =   (x-1, y)
+            tuple2  =   (x, y+1)
+            tuple3  =   (x, y-1)
+            tuple4  =   (i+1, j)
+            tuple5  =   (i, j+1)
+            tuple6  =   (i, j-1)
+            rlist.append(tuple1)
+            rlist.append(tuple2)
+            rlist.append(tuple3)
+            rlist.append(tuple4)
+            rlist.append(tuple5)
+            rlist.append(tuple6)
+
+        #print "LIST: ", rlist
+        return rlist
+
+    def mineDropped(self, ship):
+        print "mineDropped"
+        print ship.getName()
+        if(ship.getName() == "MineLayer"):
+            count = ship.getMineCount()
+            if count == 0:
+                print "No mines left"
+                return 1
+            else:       
+                print "droppping Mine"
+                ship.decreaseMineCount()
+                print ship.getMineCount()
+                return 0
+        else:
+            return 1
+
+    def minePickedUp(self, ship):
+        ship.increaseMineCount()
+        print ship.getMineCount()
 
     def getTorpedoRange(self):
         #print self.getWeapon("torpedo")
@@ -619,6 +715,8 @@ class Cruiser(Ship):
     
     def getHealthSum(self):
         return self.healthSum
+    def getName():
+        return "cruiser"
 
     def getDocked(self):
         return docked
@@ -655,6 +753,9 @@ class Kamikaze(Ship):
         
     def getSubclass(self):
         return "Kamikaze"
+
+    def getName():
+        return "kamikaze"
     
     def getSpeed(self):
         return self.speed
@@ -689,6 +790,10 @@ class Destroyer(Ship):
         
     def getDocked(self):
         return docked
+
+    def getName():
+        return "destroyer"
+
     def setDocked(self,var):
         self.docked = var
         
@@ -726,6 +831,9 @@ class TorpedoBoat(Ship):
     
     def getHealthSum(self):
         return self.healthSum
+
+    def getName():
+        return "torpedo"
         
     def getDocked(self):
         return docked
@@ -767,6 +875,8 @@ class RadarBoat(Ship):
     
     def getHealthSum(self):
         return self.healthSum
+    def getName():
+        return "radar"
         
     def getDocked(self):
         return docked
@@ -809,20 +919,15 @@ class MineLayer(Ship):
         self.speed = sum(self.health)*3/2
         self.mines = 5
         self.turnRadius = 1
-        self.name = 'mine'
-        self.docked = False
-        self.healthSum = 4
-    
-    def getHealthSum(self):
-        return self.healthSum
+        self.mineList = []  
+        self.name ='MineLayer'      
         
-    def getDocked(self):
-        return docked
-    def setDocked(self,var):
-        self.docked = var        
-        
+    def getName():
+        return "MineLayer"
+
     def getSubclass(self):
         return "MineLayer"
+
     def getSpeed(self):
         return self.speed
 
@@ -831,9 +936,6 @@ class MineLayer(Ship):
 
     def getHealth(self):
         return self.health
-
-    def getSquareHealth(self):
-        return 2        
 
     # Gets the class name
     def getName(self):
@@ -846,8 +948,16 @@ class MineLayer(Ship):
         self.mines = self.mines - 1
 
     def increaseMineCount(self):
-        self.mines = self.mines + 1
+        self.mines = self.mines + 1 
 
+    def getMines(self):
+        return self.mineList
+
+    def addMine(self, position):
+        x = position[0]
+        y = position[1]
+        tuple=(x,y)
+        self.mineList.append(tuple)
 """
 # Testing MineLayer
 a = MineLayer(8,'W', 8,10,2,1,2,3,4,9,5)

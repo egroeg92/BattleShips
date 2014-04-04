@@ -178,6 +178,7 @@ class Board:
                 obj = self.board[x][y].getObjectOn()
                 vis = self.board[x][y].isVisible()
                 aRange = self.board[x][y].isActiveRange()
+                sonarVisibility = self.board[x][y].isSonarVisible()
                 #drawing initial board with sea and coral
                 if (obj == None):
                     if (aRange):
@@ -229,7 +230,14 @@ class Board:
                     #     # pygame.draw.rect(surface, LIGHTSEA, [x*20 + x*1 + d, y*20 + y*1 + 10, 20, 20])
                     # else:
                     #     pygame.draw.rect(surface, DARKSEA, [x*20 + x*1 + d, y*20 + y*1 + 10, 20, 20])
-                
+                if (sonarVisibility):
+                    if(obj == None):
+                        pygame.draw.rect(surface, (205,192,176), [x*20 + x*1 + d, y*20 + y*1 + 10, 20, 20]) 
+                    elif(obj.getClassName() == "Mine"):
+                        #print "MINE"
+                        pygame.draw.rect(surface, (190,190,190), [x*20 + x*1 + d, y*20 + y*1 + 10, 20, 20])
+                        #print "no mine"
+                         
                 #drawing the ships
                 if (obj != None and obj.getClassName() == "Ship" and vis):
                     if (obj.isSelected()):
