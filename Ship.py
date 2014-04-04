@@ -643,6 +643,34 @@ class Cruiser(Ship):
     def getName(self):
         return self.__class__.__name__
 
+class Kamikaze(Ship):
+    def __init__(self, position, orientation, color, weapon):
+        Ship.__init__(self, 1, position, orientation, color, weapon, 5)
+        self.armour = 2
+        self.health = [2]
+        self.speed = sum(self.health)
+        self.mines = 0
+        self.turnRadius = 1
+        self.name ='kamikaze'
+        
+    def getSubclass(self):
+        return "Kamikaze"
+    
+    def getSpeed(self):
+        return self.speed
+
+    def getArmour(self):
+        return self.armour
+
+    def getHealth(self):
+        return self.health
+    
+    def detonate(self):
+        self.health = [0]
+
+    def getName(self):
+        return self.__class__.__name__
+
 class Destroyer(Ship):
     def __init__(self, position, orientation, color, weapon):
         Ship.__init__(self, 4, position, orientation, color, weapon, 8)

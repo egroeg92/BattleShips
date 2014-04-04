@@ -242,7 +242,7 @@ class Board:
                     else:
                         player1=False
                         
-                    if (obj.positionIndex((x,y)) == 0):
+                    if (obj.positionIndex((x,y)) == 0 and obj.getSubclass() != "Kamikaze"):
                         if (obj.getOrientation() == "E"):
                             if (obj.isSelected()):
                                 surface.blit(self.E_frontS,(x*20 + x*1 + d, y*20 + y*1 + 10))

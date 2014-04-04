@@ -218,17 +218,12 @@ def listener(clientsocket,screen):
             reeflist = reeflist.replace("[",'')
             reeflist = reeflist.replace("]",'')
             reeflist = reeflist.replace(" ",'')
-            reeflist = reeflist.replace('),(',')||(')
+            reeflist = reeflist.repalce('),(',')||(')
             reeflist = reeflist.split('||')
             
             print reeflist
             game.setCoral(reeflist)
-            for i in reeflist:
-                z = i.replace('(','')
-                z = z.replace(')','')
-                x = int(z.split(',')[0])    
-                
-                y = int(z.split(',')[1])
+            for (x,y) in reeflist:
                 c = Coral()
                 sq = Square(c,(x,y))
                 game.getBoard().setSquare(x,y, sq)
@@ -236,8 +231,6 @@ def listener(clientsocket,screen):
             updateBoard(game.getBoard(),screen)
                 
             print 'reef'
-
-
 
         else:
             dataList = data[1:-1]
@@ -258,7 +251,11 @@ def listener(clientsocket,screen):
 
         # updateBoard(game.getBoard(),screen)
 #         if dataList[0] == 'Move'
-   
+        
+def handler():
+    pass
+
+        
 def main(clientsocket, opp,user,player):
     pygame.mixer.init()
     pygame.mixer.music.load('images/titanic.WAV')
@@ -331,11 +328,8 @@ def main(clientsocket, opp,user,player):
     buttonMove = pygbutton.PygButton((200, WINDOWHEIGHT - 100, 120, 30), 'Move Ship')
     buttonTurn = pygbutton.PygButton((370, WINDOWHEIGHT - 100, 120, 30), 'Turn Ship')
     buttonFire = pygbutton.PygButton((540, WINDOWHEIGHT - 100, 120, 30), 'Fire Weapon')
-    kbuttonFire = pygbutton.PygButton((540, WINDOWHEIGHT - 100, 120, 30), 'Arm Explosives')
-
+    
     shipOptions = [buttonMove, buttonTurn, buttonFire]
-    kshipOptions = [buttonMove, kbuttonFire]
-
     shipOptions2 = [buttonTurn, buttonFire, buttonLongRadar]
     shipOptionsRadar = [buttonMove2, buttonTurn, buttonFire, buttonLongRadar]
     
@@ -387,9 +381,6 @@ def main(clientsocket, opp,user,player):
 
     global turnType
     turnType = "position"
-
-    global armKamikaze
-    armKamikaze = False
 
     global positioned 
     positioned = False
@@ -505,31 +496,29 @@ def main(clientsocket, opp,user,player):
 
         ## draw the ships
         for s in shiplist:
-            if (s.isSelected() and positioned and s.getSubclass() == 'Kamikaze'):
+            if (s.isSelected() and positioned):
                 screen.fill(BLACK)  # Put this here temporarily to see the output
-                for o in kshipOptions:
+                for o in shipOptions:
                     o.draw(screen)
-            elif (s.isSelected() and positioned and s.getName() == "RadarBoat"):
+        
+        if (turnType == "positionActive"):
+            for o in positionOptions:
+                o.draw(screen)
+
+
+        for s in shiplist:
+            if (s.isSelected() and positioned and s.getName() == "RadarBoat"):
                 screen.fill(BLACK)  # Put this here temporarily to see the output
                 if longRadar == True:
                     for o in shipOptions2:
                         o.draw(screen)
                 else:                
                     for o in shipOptionsRadar:
-                        o.draw(screen)   
-
-            elif (s.isSelected()):
+                        o.draw(screen)              
+            elif (s.isSelected() and positioned and s.getName() != "Radarboat"):
                 screen.fill(BLACK)  # Put this here temporarily to see the output
                 for o in shipOptions:
                     o.draw(screen)
-        
-        if (turnType == "positionActive"):
-            for s in shiplist:
-                if (s.isSelected() and s.getSubclass() != "Kamikaze"):
-                    for o in positionOptions:
-                        o.draw(screen)
-
-
 
         ## if firing
         if (turnType == "fire"):
@@ -613,12 +602,9 @@ def main(clientsocket, opp,user,player):
 
             ## set isSelected to True if a ship isSelected
 
-            isKamikaze = False;
             for ship in shiplist:
                 isSelected = True
                 if ship.isSelected():
-                    if ship.getSubclass() == 'Kamikaze':
-                        isKamikaze = True;
                     break
                 isSelected = False
 
@@ -692,10 +678,6 @@ def main(clientsocket, opp,user,player):
                                             if VISIBLE:
                                                 #print "move"
                                                 game.moveShip(x, y, True);
-                                                if (armKamikaze):
-                                                    ship.setSelected(True)
-                                                    game.detonateKamikaze()
-
                                                 if not offline:
                                                     clientsocket.send('Move:'+str(shiplist.index(ship))+':'+str(x)+':'+str(y)+':True')
                                                     turn = False
@@ -1289,11 +1271,6 @@ def main(clientsocket, opp,user,player):
                 elif 'click' in buttonMove.handleEvent(event) and turnType == '' and isSelected and not radarboatselected:
                     turnType = "move"
 
-                elif 'click' in kbuttonFire.handleEvent(event) and turnType == '' and isSelected and isKamikaze:
-                    print "KAMIKAZE ARMED"
-                    armKamikaze = True
-                    turnType = "move"
-
                 elif 'click' in buttonFire.handleEvent(event) and turnType == '' and isSelected:
                     turnType = "fire"
 
@@ -1411,31 +1388,6 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
     pList = ship.getPositionList()
     (x1, y1) = pList[0]
     (x2,y2) = pList[-1]
-
-
-
-    global moveValid
-    moveValid = True
-    board = game.getBoard()
-
-    
-    radarList = [];
-    if (ship.getSubclass() == "Kamikaze" and turnType != "positionActive" ):
-        l = ship.getPositionList()
-        for x1 in range(l[0][0] - 2, l[0][0] + 3):
-            for y1 in range(l[0][1] - 2, l[0][1] + 3):
-                radarList.append((x1, y1))
-        
-        if (x,y) in radarList:
-            if (board.getSquare(x,y).getObjectOn() != None ):
-                if (board.getSquare(x,y).getObjectOn() == ship):
-                    moveValid = True;
-                else:
-                    moveValid = False;
-        else:
-            moveValid = False;
-
-
     
     newOrientation = ship.getOrientation()
     turning = False
@@ -1464,7 +1416,9 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
             rotation = rotation - 1
     #print newOrientation
     
-  
+    global moveValid
+    moveValid = True
+    board = game.getBoard()
     
     if (newOrientation == "E"):
         if turning:
@@ -1565,7 +1519,7 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
             #print moveValid
          
 
-        elif  ( ship.getSubclass() != "Kamikaze" and turnType != "positionActive" and ((x - x1 ) >= -1 and ( x - x1 ) <= ship.getSpeed() and (y - y1) == 0) or ((y - y1) >= -1 and (y - y1) <= 1 and (x - x1) == 0)):
+        elif  (turnType != "positionActive" and ((x - x1 ) >= -1 and ( x - x1 ) <= ship.getSpeed() and (y - y1) == 0) or ((y - y1) >= -1 and (y - y1) <= 1 and (x - x1) == 0)):
             i = x1
             # check for obstacles in front
             while i <= x:
@@ -1637,9 +1591,7 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
                 i+=1
                 
                 
-        elif (turnType == "positionActive" and ship.getSubclass() == 'Kamikaze'):
-            moveValid = False    
-        elif ship.getSubclass() != 'Kamikaze':
+        else:
             moveValid = False
             
         if moveValid == True:
@@ -1650,12 +1602,8 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
         #print "Drawing", (x,y)
         
         
-        if (ship.getSubclass() != "Kamikaze"):
-            pygame.draw.polygon(surface, color, [(x*20 + x*1 + d , y*20 + y*1 + 10), (x*20 + x*1 + d, y*20 + y*1 + 29), (x*20 + x*1 + d+20 - 1, y*20 + y*1 + 20)], 0)
-            x = x - 1
-        else:
-            pygame.draw.rect(surface, color, [x*20 + x*1 + d, y*20 + y*1 + 10, 20, 20])
- 
+        pygame.draw.polygon(surface, color, [(x*20 + x*1 + d , y*20 + y*1 + 10), (x*20 + x*1 + d, y*20 + y*1 + 29), (x*20 + x*1 + d+20 - 1, y*20 + y*1 + 20)], 0)
+        x = x - 1
         for i in range(ship.getSize() - 1):
 
             pygame.draw.rect(surface, color, [x*20 + x*1 + d, y*20 + y*1 + 10, 20, 20])
@@ -1766,7 +1714,7 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
 
             if moveValid != False:
                 color = pygame.Color(194, 242, 221) #green
-        elif  ship.getSubclass() != "Kamikaze" and  turnType != "positionActive" and ((x - x1 ) <= 1 and ( x - x1 ) >= -ship.getSpeed() and (y - y1) == 0) or ((y - y1) >= -1 and (y - y1) <= 1 and (x - x1) == 0): 
+        elif  turnType != "positionActive" and ((x - x1 ) <= 1 and ( x - x1 ) >= -ship.getSpeed() and (y - y1) == 0) or ((y - y1) >= -1 and (y - y1) <= 1 and (x - x1) == 0): 
             i = x
             # check for obsticals
             while i <= x1:
@@ -1968,7 +1916,7 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
             if moveValid != False:
                 color = pygame.Color(194, 242, 221) #green
 
-        elif ship.getSubclass() != "Kamikaze" and  turnType != "positionActive" and (( x - x1 ) == 0 and (y - y1) >= -1 and (y - y1) <= ship.getSpeed()) or (abs(( x - x1 )) == 1 and (y - y1) ==0) : 
+        elif turnType != "positionActive" and (( x - x1 ) == 0 and (y - y1) >= -1 and (y - y1) <= ship.getSpeed()) or (abs(( x - x1 )) == 1 and (y - y1) ==0) : 
             
             # check for obstacle
             i = y1
@@ -2171,7 +2119,7 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
                 else:
                     moveValid = False  
            
-        elif ship.getSubclass() != "Kamikaze" and turnType != "positionActive" and (( x - x1 ) == 0 and (y1 - y) >= -1 and (y1 - y) <= ship.getSpeed()) or (abs(( x - x1 )) == 1 and (y - y1) ==0) : 
+        elif turnType != "positionActive" and (( x - x1 ) == 0 and (y1 - y) >= -1 and (y1 - y) <= ship.getSpeed()) or (abs(( x - x1 )) == 1 and (y - y1) ==0) : 
             # check for obsticals
             i = y
             while i <= y1:

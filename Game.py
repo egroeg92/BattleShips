@@ -575,7 +575,7 @@ class Game(object):
             if dead:
                 continue
             
-            if (ship.getSubclass() != "MineLayer"):
+            if (ship.getSubclass() != "MineLayer" and ship.getSubclass() != "Kamikaze"):
                 l = ship.getPositionList()
                 if (ship.getOrientation() == "W"):
                     radarList.append(l[-1])
@@ -600,7 +600,7 @@ class Game(object):
                     for x1 in range(l[-2][0] - 1, l[-2][0] + 2):
                         for y1 in range (l[-2][1], l[-2][1] + ship.getRadarX()):
                             radarList.append((x1, y1))
-            else:
+            elif ship.getSubclass() == "MineLayer":
                 l = ship.getPositionList()
                 if (ship.getOrientation() == "E"):
                     for x1 in range(l[0][0] - 3, l[1][0] + 4):
@@ -618,6 +618,11 @@ class Game(object):
                     for x1 in range(l[0][0] - 2, l[0][0] + 3):
                         for y1 in range(l[0][1] - 3, l[1][1] + 4):
                             radarList.append((x1, y1))
+            elif ship.getSubclass() == "Kamikaze":
+                l = ship.getPositionList()
+                for x1 in range(l[0][0] - 2, l[0][0] + 3):
+                    for y1 in range(l[0][1] - 2, l[0][1] + 3):
+                        radarList.append((x1, y1))
 
         for i in range(30):
             for j in range(30):
@@ -637,6 +642,60 @@ class Game(object):
 
 
                 # self.gameBoard.getSquare(i,j).setVisible(True)
+
+
+
+    def detonateKamikaze(self):
+        print "DETONATING..."
+        for ship in self.shiplist:
+            if ship.isSelected() and ship.getSubclass() == 'Kamikaze':
+                print "ship found"
+                l = ship.getPositionList()
+                
+                for (x,y) in l:
+                    self.gameBoard.getSquare(x, y).setObjectOn(None)
+                    
+                detonateZone = []
+                
+                for x1 in range(l[0][0] - 1, l[0][0] + 2):
+                    for y1 in range(l[0][1] - 1, l[0][1] + 2):
+                        detonateZone.append((x1, y1))
+                
+                for (x,y) in detonateZone:
+                    print "checking ", (x,y)
+                    sq = self.gameBoard.getSquare(x,y)
+                    o = sq.getObjectOn()
+                    
+                    if o == None or o == ship or o.getClassName() == "Coral":
+                        continue
+                    elif o.getClassName() == "Base":
+                        index = o.positionIndex((x,y))
+                        health = o.getHealth()
+                        #print "INITIAL HEALTH:",health  
+                        health[index] = 0
+                        sq.setObjectOn(None)    # remove base
+                        continue
+                    elif o.getClassName() == "Ship":
+                        index = o.positionIndex((x,y))
+                        armour = o.getArmour()
+                        #print armour  # 1 (Normal)  2 (Heavy)
+                        health = o.getHealth()
+                        #print "INITIAL HEALTH:",health  
+                        health[index] = 0
+                        if sum(health) == 0:
+                            o.destroyShip(self.gameBoard)
+                            self.updateVisibility()
+                            continue
+    
+                        o.updateSpeed()                        
+                        
+                        
+                    
+                ship.detonate();
+                ship.selected = False
+                
+                
+        self.updateVisibility()
 
     def updateVisibilityRadar(self):
         radarList = []

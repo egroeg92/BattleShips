@@ -24,6 +24,12 @@ class Cannon(Weapon):
 		
 	def getClass(self):
 		return "cannon"
+
+class Explosive(Weapon):
+	def __init__(self, damage, rangeX, rangeY):
+		Weapon.__init__(self, damage, rangeX, rangeY)
+	def getClass(self):
+		return "explosive"
 	
 class HeavyCannon(Weapon):
 	def __init__(self, damage, rangeX, rangeY):

@@ -1,6 +1,6 @@
 from Base import Base
-from Ship import Cruiser, Destroyer, RadarBoat, TorpedoBoat, MineLayer
-from Weapon import Cannon, HeavyCannon, Torpedo 
+from Ship import Cruiser, Destroyer, RadarBoat, TorpedoBoat, MineLayer, Kamikaze
+from Weapon import Cannon, HeavyCannon, Torpedo, Explosive
 import pygame
 
 WHITE = (255, 255, 255)     # WHITE          
@@ -24,6 +24,8 @@ class PlayerState(object):
         tc = Cannon(2, 5, 5)
         tt = Torpedo(2, 10, 10)
         mc = Cannon(2, 4, 5)
+        ex = Explosive(2,3,3)
+
 
         if (self.you):
             self.color = WHITE
@@ -38,6 +40,7 @@ class PlayerState(object):
             s8 = TorpedoBoat([(3,17),(2,17),(1,17)], "E", self.color, [tc, tt])
             s9 = MineLayer([(2,18),(1,18)], "E", self.color, [mc])
             s10 = MineLayer([(2,19),(1,19)], "E", self.color, [mc]) 
+            s11 = Kamikaze([(1,20)], "E", self.color, [ex]) 
 
         else:
             self.color = ENEMY
@@ -52,9 +55,11 @@ class PlayerState(object):
             s8 = TorpedoBoat([(26,17),(27,17),(28,17)], "W", self.color, [tc, tt])
             s9 = MineLayer([(27,18),(28,18)], "W", self.color, [mc])
             s10 = MineLayer([(27,19),(28,19)], "W", self.color, [mc]) 
+            s11 = Kamikaze([(28,20)], "E", self.color, [ex]) 
+
 
         # self.shipList = [s3,s4]
-        self.shipList = [s1, s2, s3, s4, s5, s6, s7, s8, s9, s10]
+        self.shipList = [s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11]
 
 
     def getUsername(self):

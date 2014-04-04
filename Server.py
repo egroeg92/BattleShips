@@ -282,6 +282,8 @@ def handler(clientsocket, clientaddr):
                     oppSock = x[0]
                     oppSock.send('OppReady')
         
+        elif dataList[0] == 'Reef':
+            oppSock.send('Reef:'+str(dataList[1]))
         elif dataList[0] == 'Move':
             oppSock.send('Move:'+dataList[1]+':'+dataList[2]+':'+dataList[3]+':'+dataList[4])
 
