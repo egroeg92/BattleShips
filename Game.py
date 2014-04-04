@@ -1,10 +1,11 @@
 from PlayerState import PlayerState
 from Board import Board
+from Square import Square
+from reefGeneration import reefGeneration
 import pygame
 
-
 class Game(object):
-    def __init__(self, player):
+    def __init__(self, player,coral):
         self.player = player
         if player:    
             self.player1 = PlayerState(True)
@@ -14,8 +15,8 @@ class Game(object):
             self.player2 = PlayerState(True)
 
         self.shiplist = self.player1.getShipList() + self.player2.getShipList()
-        coral = [(10, 3), (18, 4), (17, 9), (10,10), (14, 11), (18, 20), (16, 26), (10, 23)]
-
+        # coral = [(10, 3), (18, 4), (17, 9), (10,10), (14, 11), (18, 20), (16, 26), (10, 23)]
+        self.coral = coral
         P1E_front = pygame.image.load('images/FE.png').convert()
         P1EW_mid = pygame.image.load('images/EW.png').convert()
 
@@ -117,9 +118,25 @@ class Game(object):
         
         self.gameBoard = Board(coral,images)
         self.updateVisibility()
+        self.updateVisibilityRadar()
         self.updateBoard()
 
-
+    #?
+    def getCoral(self):
+        return self.coral        
+    #?
+    def setCoral(self, coral):
+        self.coral = coral
+    #?
+    def updateReef(self, reefGenerator,corallist, oldcorallist):
+        for (x,y) in oldcorallist:
+            #print game.getBoard().getSquare(x,y).getObjectOn()
+            sq = Square(None,(x,y))
+            self.getBoard().setSquare(x,y, sq)
+        for x in range(24):
+            coordinate = reefGenerator.random()
+            corallist.append(coordinate)  
+        
         
                     
     def getCurrentPlayer(self):
@@ -209,6 +226,8 @@ class Game(object):
                     self.gameBoard.getSquare(x,y).setObjectOn(ship)
                 
                 self.updateVisibility()
+                self.updateVisibilityRadar()
+
 
 
         
@@ -232,6 +251,8 @@ class Game(object):
                 for (x,y) in ship.getPositionList():
                     self.gameBoard.getSquare(x,y).setObjectOn(ship)
         self.updateVisibility()
+        self.updateVisibilityRadar()
+
                 
     def rotate(self, ship,rot,end,visible):
         if not visible:
@@ -251,6 +272,8 @@ class Game(object):
         for (x,y) in ship.getPositionList():
             self.gameBoard.getSquare(x,y).setObjectOn(ship)
         self.updateVisibility()
+        self.updateVisibilityRadar()
+
  
 
     def fireCannon(self, x, y):
@@ -283,6 +306,8 @@ class Game(object):
                         if sum(health) == 0:
                             object.destroyShip(self.gameBoard)
                             self.updateVisibility()
+                            self.updateVisibilityRadar()
+
                             return "ship sunk :"+object.getName()
 
                         object.updateSpeed()
@@ -292,7 +317,7 @@ class Game(object):
                         if sum(health) == 0:
                             object.destroyShip(self.gameBoard)
                             self.updateVisibility()
-
+                            self.updateVisibilityRadar()
                             # object.updateSpeed()
                             return "ship sunk :"+object.getName()
 
@@ -333,6 +358,7 @@ class Game(object):
                     if sum(health) == 0:
                         object.destroyShip(self.gameBoard)
                         self.updateVisibility()
+                        self.updateVisibilityRadar()
                         return "ship sunk :"+object.getName()
 
                     object.updateSpeed()                        
@@ -406,6 +432,7 @@ class Game(object):
                             if sum(health) == 0:
                                 object.destroyShip(self.gameBoard)
                                 self.updateVisibility()
+                                self.updateVisibilityRadar()
                                 return "ship sunk :"+object.getName()
 
                             object.updateSpeed()                            
@@ -436,6 +463,7 @@ class Game(object):
                             if sum(health) == 0:
                                 object.destroyShip(self.gameBoard) 
                                 self.updateVisibility()
+                                self.updateVisibilityRadar()
                                 return "ship sunk :"+object.getName()
 
                             object.updateSpeed()
@@ -450,6 +478,7 @@ class Game(object):
                             if sum(health) == 0:
                                 object.destroyShip(self.gameBoard)
                                 self.updateVisibility()
+                                self.updateVisibilityRadar()
                                 return "ship sunk :"+object.getName()
 
                             object.updateSpeed()                            
@@ -459,11 +488,13 @@ class Game(object):
                             if sum(health) == 0:
                                 object.destroyShip(self.gameBoard) 
                                 self.updateVisibility()
+                                self.updateVisibilityRadar()
                                 return object.getName() + " sunk"
 
                             object.updateSpeed()
                             return "ship hit : FINAL HEALTH: " + str(health)
         self.updateVisibility()
+        self.updateVisibilityRadar()
     
     def repairShip(self, ship):
         i = 0
@@ -607,7 +638,57 @@ class Game(object):
 
                 # self.gameBoard.getSquare(i,j).setVisible(True)
 
+    def updateVisibilityRadar(self):
+        radarList = []
+        for ship in self.player1.getShipList():
+            
+            dead = True
+            for h in ship.getHealth():
+                if h !=0:
+                    dead = False
+            
+            if dead:
+                continue
+            if (ship.getName() == "RadarBoat" and ship.getLongRadar()):
+                l = ship.getPositionList()
+                if (ship.getOrientation() == "W"):
+                    radarList.append(l[-1])
+                    for x1 in range(l[-1][0] - ship.getLongRadarX() , l[-1][0]):
+                        for y1 in range (l[-2][1] - 1, l[-2][1] + 2):
+                            
+                            radarList.append((x1, y1))
+                elif (ship.getOrientation() == "E"):
+                    radarList.append(l[-1])
+                    for x1 in range(l[-2][0], l[-2][0] + ship.getLongRadarX()):
+                        for y1 in range (l[-2][1] - 1, l[-2][1] + 2):
+                            
+                            radarList.append((x1, y1))
+                elif (ship.getOrientation() == "N"):
+                    radarList.append(l[-1])
+                    for x1 in range(l[-2][0] - 1, l[-2][0] + 2):
+                        for y1 in range (l[-1][1] - ship.getLongRadarX(), l[-1][1]):
+                            
+                            radarList.append((x1, y1))
+                elif (ship.getOrientation() == "S"):
+                    radarList.append(l[-1])
+                    for x1 in range(l[-2][0] - 1, l[-2][0] + 2):
+                        for y1 in range (l[-2][1], l[-2][1] + ship.getLongRadarX()):
+                            radarList.append((x1, y1))
 
+        for i in range(30):
+            for j in range(30):
+
+
+                if (i,j) in radarList:
+                    self.gameBoard.getSquare(i,j).setVisible(True)
+                #else:
+                #    self.gameBoard.getSquare(i,j).setVisible(False)
+
+                if self.gameBoard.getSquare(i,j).getObjectOn() != None:
+                
+                    if self.gameBoard.getSquare(i,j).getObjectOn().getClassName() == 'Coral':
+                        # print 'dfd'
+                        self.gameBoard.getSquare(i,j).setVisible(True)
                             
                             
                 

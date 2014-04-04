@@ -727,6 +727,7 @@ class RadarBoat(Ship):
     def __init__(self, position, orientation, color, weapon):
         Ship.__init__(self, 3, position, orientation, color, weapon, 6)
         self.longRadarX = 12
+        self.LongRadarOn = False
         self.armour = 1
         self.health = [1,1,1]
         self.speed = sum(self.health)
@@ -759,6 +760,14 @@ class RadarBoat(Ship):
 
     def getSquareHealth(self):
         return 1        
+    def setLongRadar(self, var):
+        self.LongRadarOn = var
+
+    def getLongRadar(self):
+        return self.LongRadarOn            
+    
+    def getLongRadarX(self):
+        return self.longRadarX
 
     # Gets the class name
     def getName(self):

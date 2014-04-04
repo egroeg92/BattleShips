@@ -8,10 +8,9 @@ from Board import Board
 from Ship import Ship
 from PlayerState import PlayerState
 from Game import Game
-
-import Tkinter as tk
-from Tkinter import *
-import os
+from reefGeneration import reefGeneration
+from Coral import Coral
+from Square import Square
 
 
 
@@ -213,6 +212,9 @@ def listener(clientsocket,screen):
             updateBoard(game.getBoard(),screen)
 
             turn = True
+        elif dataList[0] == 'Reef':
+            #TODO
+            print 'reef'
 
         else:
             dataList = data[1:-1]
@@ -230,12 +232,11 @@ def listener(clientsocket,screen):
 
                 op_positioned = True
 
+
         # updateBoard(game.getBoard(),screen)
 #         if dataList[0] == 'Move'
         
 def handler():
-    pass
-def updateFrame():
     pass
 
         
@@ -276,9 +277,24 @@ def main(clientsocket, opp,user,player):
     
     ## Game object
 
+
     global game
-    game = Game(Player1);
+    corallist = []
+    reefGenerator = reefGeneration()
     
+    if Player1:
+        game = Game(Player1, corallist)
+        game.updateReef(reefGenerator,corallist,game.getCoral())
+        game.setCoral(corallist)
+        for (x,y) in corallist:
+            c = Coral()
+            sq = Square(c,(x,y))
+            game.getBoard().setSquare(x,y, sq)
+        screen.fill(BLACK);
+        updateBoard(game.getBoard(),screen)
+        clientsocket.send("Reef:"+corallist)
+    else:
+        game = Game(Player1, corallist)
 
     global colx
     global coly
@@ -289,11 +305,16 @@ def main(clientsocket, opp,user,player):
     ## creating the button objects
 
     buttonRotate = pygbutton.PygButton((570, WINDOWHEIGHT - 100, 120, 30), 'Rotate Ship')
+    buttonLongRadar = pygbutton.PygButton((30, WINDOWHEIGHT - 100, 145, 30), 'Long Radar ON/OFF')
+
+    buttonMove2 = pygbutton.PygButton((200, WINDOWHEIGHT - 100, 120, 30), 'Move Ship')
     buttonMove = pygbutton.PygButton((200, WINDOWHEIGHT - 100, 120, 30), 'Move Ship')
     buttonTurn = pygbutton.PygButton((370, WINDOWHEIGHT - 100, 120, 30), 'Turn Ship')
     buttonFire = pygbutton.PygButton((540, WINDOWHEIGHT - 100, 120, 30), 'Fire Weapon')
     
     shipOptions = [buttonMove, buttonTurn, buttonFire]
+    shipOptions2 = [buttonTurn, buttonFire, buttonLongRadar]
+    shipOptionsRadar = [buttonMove2, buttonTurn, buttonFire, buttonLongRadar]
     
     positionOptions = [buttonRotate]
 
@@ -353,6 +374,13 @@ def main(clientsocket, opp,user,player):
     global resultString
     resultString = ""
 
+
+    global longRadar
+    longRadar = False
+
+    global radarboatselected
+    radarboatselected = False    
+
     ## booleans for what kind of weapon options to display (initiated to none)
     cannon = False
     torpedo = False
@@ -372,8 +400,6 @@ def main(clientsocket, opp,user,player):
 ##                                                 ##
 #####################################################
     while True:
-
-        updateFrame()
 
 
         if gameOver:
@@ -462,6 +488,21 @@ def main(clientsocket, opp,user,player):
             for o in positionOptions:
                 o.draw(screen)
 
+
+        for s in shiplist:
+            if (s.isSelected() and positioned and s.getName() == "RadarBoat"):
+                screen.fill(BLACK)  # Put this here temporarily to see the output
+                if longRadar == True:
+                    for o in shipOptions2:
+                        o.draw(screen)
+                else:                
+                    for o in shipOptionsRadar:
+                        o.draw(screen)              
+            elif (s.isSelected() and positioned and s.getName() != "Radarboat"):
+                screen.fill(BLACK)  # Put this here temporarily to see the output
+                for o in shipOptions:
+                    o.draw(screen)
+
         ## if firing
         if (turnType == "fire"):
             screen.fill(BLACK);
@@ -549,6 +590,14 @@ def main(clientsocket, opp,user,player):
                 if ship.isSelected():
                     break
                 isSelected = False
+
+            # set radarboatselected True if RadarBoat is selected
+            for ship in shiplist:
+                if ship.isSelected() and ship.getName() == "RadarBoat":
+                    radarboatselected = True
+                elif ship.isSelected() and ship.getName() != "RadarBoat":
+                    radarboatselected = False                
+
 
             ## Events only matter if its the clients turn
             if turn:
@@ -1130,7 +1179,37 @@ def main(clientsocket, opp,user,player):
                                 if not offline:
                                     clientsocket.send("Repair:"+str(shiplist.index(ship)))
                                  
-                     
+                
+                # clicked to turn radar on
+                elif turnType == "radaron":
+                    global longRadar
+                    longRadar = True
+                    for s in shiplist:
+                        if (s.isSelected() and positioned and s.getName() == "RadarBoat"):
+                            screen.fill(BLACK)  # Put this here temporarily to see the output
+                            if longRadar == True: 
+                                for o in shipOptions2:
+                                    o.draw(screen)                     
+                    game.updateVisibilityRadar() 
+                    global turnType
+                    turnType = ""
+                    screen.fill(BLACK);
+
+                #?
+                # clicked to turn radar off
+                elif turnType == "radaroff":
+                    global longRadar
+                    longRadar = False
+                    for s in shiplist:
+                        if (s.isSelected() and positioned and s.getName() == "RadarBoat"):
+                            screen.fill(BLACK)  # Put this here temporarily to see the output
+                            if longRadar == False:
+                                for o in shipOptionsRadar:
+                                    o.draw(screen)                                                        
+                    game.updateVisibility() 
+                    global turnType
+                    turnType = ""
+                    screen.fill(BLACK);       
 
                
                 #######################
@@ -1166,7 +1245,13 @@ def main(clientsocket, opp,user,player):
 
                     screen.fill(BLACK);                                
 
-                elif 'click' in buttonMove.handleEvent(event) and turnType == '' and isSelected:
+
+                #?
+                elif 'click' in buttonMove2.handleEvent(event) and turnType == '' and isSelected and not longRadar:
+                    turnType = "move"                                                 
+
+                #?
+                elif 'click' in buttonMove.handleEvent(event) and turnType == '' and isSelected and not radarboatselected:
                     turnType = "move"
 
                 elif 'click' in buttonFire.handleEvent(event) and turnType == '' and isSelected:
@@ -1197,6 +1282,22 @@ def main(clientsocket, opp,user,player):
                
                 elif 'click' in buttonRepair.handleEvent(event) and turnType == 'baseRepair':
                     turnType = "repairBoat"
+
+
+
+                elif 'click' in buttonLongRadar.handleEvent(event) and radarboatselected and turnType == "" and isSelected:
+                    for ship in shiplist:
+                        if ship.getName() == "RadarBoat" and ship.getLongRadar() == True:
+                            turnType = "radaroff"
+                            ship.setLongRadar(False)
+                            global longRadar
+                            longRadar = False
+                            
+                        elif ship.getName() == "RadarBoat" and ship.getLongRadar() == False:
+                            turnType = "radaron"
+                            ship.setLongRadar(True)
+                            global longRadar
+                            longRadar = True 
 
 
                 elif event.type == pygame.MOUSEBUTTONUP:
@@ -1244,7 +1345,7 @@ def main(clientsocket, opp,user,player):
                             turnType = "baseRepair"
                             
                     print turnType
-                if turnType != "move" and turnType != "positionActive" and turnType != "turn" and turnType != "cannon" and turnType != "heavycannon" and turnType != "torpedo":
+                if turnType != "move" and turnType != "positionActive" and turnType != "turn" and turnType != "cannon" and turnType != "heavycannon" and turnType != "torpedo" and turnType != "radaron" and turnType != "radaroff":
 
                     updateBoard(game.getBoard(),screen)
                   

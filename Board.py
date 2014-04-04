@@ -104,7 +104,9 @@ class Board:
     def getSquare(self, x, y):
         return self.board[x][y]
     
-
+    def setSquare(self,x,y,sq):
+        self.board[x][y] = sq
+    
 
     def animate(self,surface,t):
 
