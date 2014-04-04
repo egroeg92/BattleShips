@@ -285,7 +285,13 @@ def handler(clientsocket, clientaddr):
         elif dataList[0] == 'Reef':
             oppSock.send('Reef:'+str(dataList[1]))
         elif dataList[0] == 'Move':
-            oppSock.send('Move:'+dataList[1]+':'+dataList[2]+':'+dataList[3]+':'+dataList[4])
+            oppSock.send('Move:'+dataList[1]+':'+dataList[2]+':'+dataList[3]+':'+dataList[4]+':'+dataList[5])
+
+        elif dataList[0] == 'MineDrop':
+            oppSock.send('MineDrop:'+dataList[1]+':'+dataList[2])
+        
+        elif dataList[0] == 'MinePick':
+            oppSock.send('MinePick:'+dataList[1]+':'+dataList[2])
 
         elif dataList[0] == 'Position':
             print str(dataList)

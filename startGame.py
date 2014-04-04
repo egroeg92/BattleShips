@@ -71,9 +71,14 @@ def listener(clientsocket,screen):
             x = int(dataList[2])
             y = int(dataList[3])
             vis = dataList[4]
+            setKa = dataList[5]
+
             ship.setSelected(True)
             
             if vis == 'True':
+            	if (setKa == 'True'):
+                    game.detonateKamikaze()
+
                 game.moveShip(x,y,True)
                 game.getBoard().setNot(-1,-1,screen)
                 updateBoard(game.getBoard(),screen)
@@ -214,6 +219,21 @@ def listener(clientsocket,screen):
             updateBoard(game.getBoard(),screen)
 
             turn = True
+        elif dataList[0] =='MineDrop':
+            x = int(dataList[1])
+            y = int(dataList[2])
+            mine = Mine(1, 0, 0, (x,y)) 
+            
+            game.dropMineOnBoard(mine, (x,y))
+            addMineList((x,y))
+            turn = True
+        elif dataList[0] == 'MinePick':
+            x = int(dataList[1])
+            y = int(dataList[2])
+            removeMineList((x,y))
+            game.removeMine((x, y))
+            turn =True
+
         elif dataList[0] == 'Reef':
             #TODO
             reeflist = dataList[1]
@@ -709,7 +729,7 @@ def main(clientsocket, opp,user,player):
                                                     game.detonateKamikaze()
 
                                                 if not offline:
-                                                    clientsocket.send('Move:'+str(shiplist.index(ship))+':'+str(x)+':'+str(y)+':True')
+                                                    clientsocket.send('Move:'+str(shiplist.index(ship))+':'+str(x)+':'+str(y)+':True:'+str(armKamikaze))
                                                     turn = False
                                             else:
                                                 game.moveShip(x, y, False)
@@ -724,7 +744,7 @@ def main(clientsocket, opp,user,player):
 
                                                 print "CO",colx,coly
                                                 if not offline:
-                                                    clientsocket.send('Move:'+str(shiplist.index(ship))+':'+str(colx)+':'+str(coly)+':False')
+                                                    clientsocket.send('Move:'+str(shiplist.index(ship))+':'+str(colx)+':'+str(coly)+':False:False')
                                                     turn = False
                                     
                                     elif ship.getOrientation() == "W":
@@ -733,7 +753,7 @@ def main(clientsocket, opp,user,player):
                                                 #print "move"
                                                 game.moveShip(x, y, True);
                                                 if not offline:
-                                                    clientsocket.send('Move:'+str(shiplist.index(ship))+':'+str(x)+':'+str(y)+':True')
+                                                    clientsocket.send('Move:'+str(shiplist.index(ship))+':'+str(x)+':'+str(y)+':True:False')
                                                     turn = False
                                             else:
                                                 print "COLLISION"
@@ -748,7 +768,7 @@ def main(clientsocket, opp,user,player):
 
                                                 print "CO",colx,coly
                                                 if not offline:
-                                                    clientsocket.send('Move:'+str(shiplist.index(ship))+':'+str(colx)+':'+str(coly)+':False')
+                                                    clientsocket.send('Move:'+str(shiplist.index(ship))+':'+str(colx)+':'+str(coly)+':False:False')
                                                     turn = False
                                     elif ship.getOrientation() == "S":
                                         back_postion = ship.getPositionList()[-1]
@@ -758,7 +778,7 @@ def main(clientsocket, opp,user,player):
                                                 #print "move"
                                                 game.moveShip(x, y, True);
                                                 if not offline:
-                                                    clientsocket.send('Move:'+str(shiplist.index(ship))+':'+str(x)+':'+str(y)+':True')
+                                                    clientsocket.send('Move:'+str(shiplist.index(ship))+':'+str(x)+':'+str(y)+':True:False')
                                                     turn = False
                                             else:
                                                 print "COLLISION"
@@ -771,7 +791,7 @@ def main(clientsocket, opp,user,player):
                                                 updateBoard(game.getBoard(),screen)
 
                                                 if not offline:
-                                                    clientsocket.send('Move:'+str(shiplist.index(ship))+':'+str(colx)+':'+str(coly)+':False')
+                                                    clientsocket.send('Move:'+str(shiplist.index(ship))+':'+str(colx)+':'+str(coly)+':False:False')
                                                     turn = False
 
                                     elif ship.getOrientation() == "N":
@@ -780,7 +800,7 @@ def main(clientsocket, opp,user,player):
                                                 #print "move"
                                                 game.moveShip(x, y, True);
                                                 if not offline:
-                                                    clientsocket.send('Move:'+str(shiplist.index(ship))+':'+str(x)+':'+str(y)+':True')
+                                                    clientsocket.send('Move:'+str(shiplist.index(ship))+':'+str(x)+':'+str(y)+':True:False')
                                                     turn = False
 
                                             else:
@@ -794,7 +814,7 @@ def main(clientsocket, opp,user,player):
                                                 updateBoard(game.getBoard(),screen)
 
                                             if not offline:
-                                                clientsocket.send('Move:'+str(shiplist.index(ship))+':'+str(colx)+':'+str(coly)+':False')
+                                                clientsocket.send('Move:'+str(shiplist.index(ship))+':'+str(colx)+':'+str(coly)+':False:False')
                                                 turn = False
                                
                                 ship.setSelected(False)
@@ -1180,6 +1200,7 @@ def main(clientsocket, opp,user,player):
                                     screen.blit(notifier, (200, WINDOWHEIGHT - 100))
                                     global turnType
                                     turnType = ""
+
                                 else:
                                     position = ship.position
                                     game.getBoard().paint(screen)
@@ -1191,8 +1212,8 @@ def main(clientsocket, opp,user,player):
                                         else:
                                             drawWeapon(screen, x, y)
                                             print "Valid dropping area"
-                                            #mineShip = ship
-                                            #print s
+                                        	
+
                                             break
                                     else:
                                         drawRedWeapon(screen, x, y)
@@ -1218,6 +1239,10 @@ def main(clientsocket, opp,user,player):
                             if(result == 0):
                                 game.dropMineOnBoard(mine, tuple)
                                 addMineList(tuple)
+                                ship.setSelected(False)
+                                if not offline:
+                                	clientsocket.send("MineDrop:"+str(x)+':'+str(y))
+                                	turn = False
                             else:
                                 resultString = "Can't drop Mine.  The boat is out of Mines!" 
                                 screen.fill(BLACK);
@@ -1271,7 +1296,6 @@ def main(clientsocket, opp,user,player):
                     elif event.type == pygame.MOUSEBUTTONUP: 
                         if (x,y) in ship.getdroppingRange(position):
                             result = game.PickUpMine(x,y)
-                            print "picckckcksckcdkckdckck"
                             print result
                             if(result == 0):
                                 if ship.getName() == "MineLayer":
@@ -1284,6 +1308,11 @@ def main(clientsocket, opp,user,player):
                                     screen.blit(notifier, (200, WINDOWHEIGHT - 100))
                                     global turnType
                                     turnType = ""
+                                    ship.setSelected(False)
+                                    if not offline:
+	                                	clientsocket.send("MinePick:"+str(x)+':'+str(y))
+	                                	turn = False
+	                            
 
                         else:
                             resultString = "Mine pick up unseuccessful" 

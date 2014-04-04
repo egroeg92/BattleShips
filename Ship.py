@@ -750,7 +750,10 @@ class Kamikaze(Ship):
         self.mines = 0
         self.turnRadius = 1
         self.name ='kamikaze'
-        
+        self.docked = False
+    
+    def getHealthSum(self):
+        return self.healthSum
     def getSubclass(self):
         return "Kamikaze"
 
@@ -768,6 +771,14 @@ class Kamikaze(Ship):
     
     def detonate(self):
         self.health = [0]
+
+    def getDocked(self):
+        return docked
+    def setDocked(self,var):
+        self.docked = var
+
+    def getSquareHealth(self):
+        return 2
 
     def getName(self):
         return self.__class__.__name__
@@ -920,8 +931,19 @@ class MineLayer(Ship):
         self.mines = 5
         self.turnRadius = 1
         self.mineList = []  
-        self.name ='MineLayer'      
+        self.name ='MineLayer' 
+        self.docked = False
+        self.healthSum = 4     
         
+
+    def getHealthSum(self):
+        return self.healthSum
+        
+    def getDocked(self):
+        return docked
+    def setDocked(self,var):
+        self.docked = var
+
     def getName():
         return "MineLayer"
 

@@ -69,7 +69,11 @@ class Game(object):
 
         note = pygame.image.load('images/notifier.png').convert()
 
+        mine1 = pygame.image.load('images/mine1.png').convert()
+
+        mine2 = pygame.image.load('images/mine2.png').convert()
         
+        radar = pygame.image.load('images/radar.png').convert()
         
         images = []
         images.append(P1E_front)
@@ -115,6 +119,11 @@ class Game(object):
         images.append(c1)
         images.append(c2)
         images.append(note)
+
+        images.append(mine1)
+        images.append(mine2)
+
+        images.append(radar)
         
         self.gameBoard = Board(coral,images)
         self.updateVisibility()

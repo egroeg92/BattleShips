@@ -74,6 +74,12 @@ class Board:
 
         self.note = images[36]
 
+        self.mine1 = images[37]
+        self.mine2 = images[38]
+
+        self.radar = images[39]
+
+
         self.x = -1
         self.y = -1 
 
@@ -232,10 +238,15 @@ class Board:
                     #     pygame.draw.rect(surface, DARKSEA, [x*20 + x*1 + d, y*20 + y*1 + 10, 20, 20])
                 if (sonarVisibility):
                     if(obj == None):
-                        pygame.draw.rect(surface, (205,192,176), [x*20 + x*1 + d, y*20 + y*1 + 10, 20, 20]) 
+                        surface.blit(self.radar,(x*20 + x*1 + d ,y*20 + y*1 + 10))
                     elif(obj.getClassName() == "Mine"):
                         #print "MINE"
-                        pygame.draw.rect(surface, (190,190,190), [x*20 + x*1 + d, y*20 + y*1 + 10, 20, 20])
+                        if self.tick == 0:
+                            surface.blit(self.mine1,(x*20 + x*1 + d ,y*20 + y*1 + 10))
+                        else:
+                            surface.blit(self.mine2,(x*20 + x*1 + d ,y*20 + y*1 + 10))
+                        
+                        # pygame.draw.rect(surface, (190,190,190), [x*20 + x*1 + d, y*20 + y*1 + 10, 20, 20])
                         #print "no mine"
                          
                 #drawing the ships
