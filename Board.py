@@ -15,6 +15,12 @@ SELECTED = (250, 250, 215)
 GREEN = (190, 252, 187)
 YELLOW = (247, 255, 94)
 
+#?
+DARKGREEN = (102,102,0)
+#?
+BROWN = (51,0,25)
+
+
 d = 85
 
 clock = pygame.time.Clock()
@@ -167,11 +173,7 @@ class Board:
                         else:
                             surface.blit(self.dw2,(x*20 + x*1 + d ,y*20 + y*1 + 10))
 
-                    #     surface.blit(self.w1,(x*20 + x*1 + d ,y*20 + y*1 + 10))
-                    #     # pygame.draw.rect(surface, LIGHTSEA, [x*20 + x*1 + d, y*20 + y*1 + 10, 20, 20])
-                    # else:
-                    #     pygame.draw.rect(surface, DARKSEA, [x*20 + x*1 + d, y*20 + y*1 + 10, 20, 20])
-                
+
     def setNot(self,x,y,surface):
         self.x = x
         self.y = y
@@ -202,12 +204,7 @@ class Board:
                         else:
                             surface.blit(self.dw2,(x*20 + x*1 + d ,y*20 + y*1 + 10))
 
-                    #     surface.blit(self.w1,(x*20 + x*1 + d ,y*20 + y*1 + 10))
 
-                    #     # pygame.draw.rect(surface, LIGHTSEA, [x*20 + x*1 + d, y*20 + y*1 + 10, 20, 20])
-                    # else:
-                    #     pygame.draw.rect(surface, DARKSEA, [x*20 + x*1 + d, y*20 + y*1 + 10, 20, 20])
-                      
                 elif (obj.getClassName() == "Coral"):
                     if self.tick == 0:
                             # print 'w1'
@@ -232,10 +229,6 @@ class Board:
                         else:
                             surface.blit(self.dw2,(x*20 + x*1 + d ,y*20 + y*1 + 10))
 
-                    #     surface.blit(self.w1,(x*20 + x*1 + d ,y*20 + y*1 + 10))
-                    #     # pygame.draw.rect(surface, LIGHTSEA, [x*20 + x*1 + d, y*20 + y*1 + 10, 20, 20])
-                    # else:
-                    #     pygame.draw.rect(surface, DARKSEA, [x*20 + x*1 + d, y*20 + y*1 + 10, 20, 20])
                 if (sonarVisibility):
                     if(obj == None):
                         surface.blit(self.radar,(x*20 + x*1 + d ,y*20 + y*1 + 10))
@@ -246,9 +239,7 @@ class Board:
                         else:
                             surface.blit(self.mine2,(x*20 + x*1 + d ,y*20 + y*1 + 10))
                         
-                        # pygame.draw.rect(surface, (190,190,190), [x*20 + x*1 + d, y*20 + y*1 + 10, 20, 20])
-                        #print "no mine"
-                         
+
                 #drawing the ships
                 if (obj != None and obj.getClassName() == "Ship" and vis):
                     if (obj.isSelected()):
@@ -338,6 +329,13 @@ class Board:
                             if(obj.isSelected()):
                                 surface.blit(self.EW_midS,(x*20 + x*1 + d-1, y*20 + y*1 + 10))
 
+                            #?
+                            elif (obj.getName() == "RadarBoat" and obj.positionIndex((x,y)) == 1): # This is where the middle part of te boat is at
+                                pygame.draw.rect(surface, BROWN, [x*20 + x*1 + d, y*20 + y*1 + 10, 20, 21])
+                                if (obj.getHealth()[obj.positionIndex((x,y))] <= 0):
+                                    pygame.draw.rect(surface, RED, [x*20 + x*1 + d, y*20 + y*1 + 10, 20, 20])
+
+
                             elif (obj.getHealth()[obj.positionIndex((x,y))] <= 0):
                                 surface.blit(self.EW_midDe,(x*20 + x*1 + d-1, y*20 + y*1 + 10))
                                 # pygame.draw.rect(surface, RED, [x*20 + x*1 + d, y*20 + y*1 + 10, 20, 20])
@@ -355,6 +353,12 @@ class Board:
                         else:
                             if(obj.isSelected()):
                                 surface.blit(self.NS_s,(x*20 + x*1 + d-1, y*20 + y*1 + 10))
+                            
+                            elif (obj.getName() == "RadarBoat" and obj.positionIndex((x,y)) == 1):
+                                pygame.draw.rect(surface, BROWN, [x*20 + x*1 + d, y*20 + y*1 + 10, 20, 21])
+                                if (obj.getHealth()[obj.positionIndex((x,y))] <= 0):
+                                    pygame.draw.rect(surface, RED, [x*20 + x*1 + d, y*20 + y*1 + 10, 20, 20])
+
 
                             elif (obj.getHealth()[obj.positionIndex((x,y))] <= 0):
                                 surface.blit(self.NS_midDe,(x*20 + x*1 + d-1, y*20 + y*1 + 10))
@@ -371,14 +375,15 @@ class Board:
 
                             # pygame.draw.rect(surface, c, [x*20 + x*1 + d, y*20 + y*1 + 10, 20, 20])
                         
-                #drawing the bases
                 if (obj != None and obj.getClassName() == "Base"):
-                    pygame.draw.rect(surface, obj.getColor(), [x*20 + x*1 + d, y*20 + y*1 + 10, 20, 21])
+                    if (obj.isSelected()):
+                        c = DARKGREEN       # DARKGREEN
+                    else:
+                        c = obj.getColor()  # WHITE
+                    pygame.draw.rect(surface, c, [x*20 + x*1 + d, y*20 + y*1 + 10, 20, 21])
 
-
+        
         if self.x != -1 and self.y != -1:
             # print x, y
             surface.blit(self.note,(self.x*20 + self.x*1 + d, self.y*20 + self.y*1 + 10))
 
-            # pygame.draw.rect(surface, RED, [self.x*20 + self.x*1 + d, self.y*20 + self.y*1 + 10, 20, 20])
- 

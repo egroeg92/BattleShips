@@ -1560,8 +1560,13 @@ def main(clientsocket, opp,user,player):
                         obj = game.getBoard().getSquare(x,y).getObjectOn()
                         if obj == None:
                             turnType = ''
-                            print "hi"
-                            print 
+                            for z in shiplist:
+	                        	z.setSelected(False)
+                 			for b in baselist:
+                 				x1 = b[0]
+                 				x2 = b[1]
+                 				game.getBoard().getSquare(x1,x2).getObjectOn().setSelected(False)
+                        
                         elif obj.getClassName() == "Base" and turnType != "position" and (x,y) not in op_baselist:
                             obj.setSelected(True)
                             turnType = "baseRepair"
