@@ -29,49 +29,6 @@ fps = clock.tick(30) / 1000.0
 class Board:
     def __init__(self, coral):
         
-
-        # pygame.image.load('images/FE.png').convert() = pygame.image.load('images/FE.png').convert()
-        # pygame.image.load('images/EW.png').convert() = pygame.image.load('images/EW.png').convert()
-        # pygame.image.load('images/FED.png').convert() = pygame.image.load('images/FED.png').convert()
-        # pygame.image.load('images/EWD.png').convert() = pygame.image.load('images/EWD.png').convert()
-        # pygame.image.load('images/FEDe.png').convert() = pygame.image.load('images/FEDe.png').convert()
-        # pygame.image.load('images/EWDe.png').convert() = pygame.image.load('images/EWDe.png').convert()
-        # pygame.image.load('images/FEs.png').convert() = pygame.image.load('images/FEs.png').convert()
-        # pygame.image.load('images/EWs.png').convert() = pygame.image.load('images/EWs.png').convert()
-        # pygame.image.load('images/NS.png').convert() = pygame.image.load('images/P1FN.png').convert()
-        # pygame.image.load('images/NS.png').convert() = pygame.image.load('images/NS.png').convert()
-        # pygame.image.load('images/FND.png').convert() = pygame.image.load('images/FND.png').convert()
-        # pygame.image.load('images/NSD.png').convert() = pygame.image.load('images/NSD.png').convert()
-        # pygame.image.load('images/FNDe.png').convert() = pygame.image.load('images/FNDe.png').convert()
-        # pygame.image.load('images/NSDe.png').convert() = pygame.image.load('images/NSDe.png').convert()
-        # pygame.image.load('images/FNs.png').convert() = pygame.image.load('images/FNs.png').convert()
-        # pygame.image.load('images/NSs.png').convert() = pygame.image.load('images/NSs.png').convert()
-        # pygame.image.load('images/FWs.png').convert() = pygame.image.load('images/FWs.png').convert()
-        # pygame.image.load('images/FWD.png').convert() = pygame.image.load('images/FWD.png').convert()
-        # pygame.image.load('images/FWDe.png').convert() = pygame.image.load('images/FWDe.png').convert()
-        # pygame.image.load('images/FW.png').convert() =pygame.image.load('images/FW.png').convert()
-        # pygame.image.load('images/FSs.png').convert() = pygame.image.load('images/FSs.png').convert()
-        # pygame.image.load('images/FSD.png').convert() = pygame.image.load('images/FSD.png').convert()
-        # pygame.image.load('images/FSDe.png').convert() = pygame.image.load('images/FSDe.png').convert()
-        # pygame.image.load('images/P1FS.png').convert() =pygame.image.load('images/P1FS.png').convert()
-        # pygame.image.load('images/P2FN.png').convert() = pygame.image.load('images/P2FN.png').convert()
-        # pygame.image.load('images/P2EW.png').convert() = pygame.image.load('images/P2EW.png').convert()
-        # pygame.image.load('images/P2FS.png').convert() = pygame.image.load('images/P2FS.png').convert()
-        # pygame.image.load('images/P2FE.png').convert() =pygame.image.load('images/P2FE.png').convert()
-        # pygame.image.load('images/P2Fw.png').convert() =pygame.image.load('images/P2FW.png').convert()
-        # pygame.image.load('images/P2NSM.png').convert() = pygame.image.load('images/P2NSM.png').convert()
-        # pygame.image.load('images/water1.png').convert() = pygame.image.load('images/water1.png').convert()
-        # pygame.image.load('images/water2.png').convert() = pygame.image.load('images/water2.png').convert()
-        # pygame.image.load('images/darkwater1.png').convert() = pygame.image.load('images/darkwater1.png').convert()
-        # pygame.image.load('images/darkwater2.png').convert() = pygame.image.load('images/darkwater2.png').convert()
-        # pygame.image.load('images/coral1.png').convert() = pygame.image.load('images/coral1.png').convert()
-        # pygame.image.load('images/coral2.png').convert() = pygame.image.load('images/coral2.png').convert()
-        # pygame.image.load('images/notifier.png').convert() = pygame.image.load('images/notifier.png').convert()
-        # pygame.image.load('images/mine1.png').convert() = pygame.image.load('images/mine1.png').convert()
-        # pygame.image.load('images/mine2.png').convert() = pygame.image.load('images/mine2.png').convert()       
-        # pygame.image.load('images/radar.png').convert() = pygame.image.load('images/radar.png').convert()
-
-
         self.x = -1
         self.y = -1 
 

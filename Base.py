@@ -70,18 +70,3 @@ class Base:
     
     def setSelected(self, var):
         self.selected = var  
-"""
-# Test
-b = Base([(1,2), (3,4)], [2,3,4,5], 1,2,3,4)
-print b.getPositionList()
-newposlist = [(5,6), (7,8)]
-b.setPositionList(newposlist)
-print b.getPositionList()
-print b.getPosition(1)
-b.setPosition((3,4), 1)
-print b.getPosition(1)
-print b.getArmour()
-print b.getArmourIndex(0)
-b.setArmourIndex(0, 8)
-print b.getArmour()
-"""
