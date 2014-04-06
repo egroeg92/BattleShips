@@ -87,6 +87,8 @@ def start(clientsocket,opp,user,un):
     buttonExit = pygbutton.PygButton((WINDOWWIDTH/2-60, 250, 120, 30), 'back')
     
     buttonStart = pygbutton.PygButton((WINDOWWIDTH/2-60, 50, 120, 30), 'start')
+
+    buttonLoad = pygbutton.PygButton((WINDOWWIDTH/2-60, 100, 120,30), 'Load')
     buttonExit.draw(SCREEN)
     buttonStart.draw(SCREEN)
     pygame.display.update()
@@ -113,7 +115,6 @@ def start(clientsocket,opp,user,un):
             Matchup.start(clientsocket,un)
             break
         if op_ready == True and ready == True and listen == False:
-#             clientsocket.send('BreakListener')
             clientsocket.send('StartGame')
             reef = clientsocket.recv(1024)
             reef = reef.split(':')
