@@ -89,6 +89,8 @@ def start(clientsocket,opp,user,un):
     buttonStart = pygbutton.PygButton((WINDOWWIDTH/2-60, 50, 120, 30), 'start')
 
     buttonLoad = pygbutton.PygButton((WINDOWWIDTH/2-60, 100, 120,30), 'Load')
+    
+    buttonLoad.draw(SCREEN)
     buttonExit.draw(SCREEN)
     buttonStart.draw(SCREEN)
     pygame.display.update()
@@ -107,7 +109,8 @@ def start(clientsocket,opp,user,un):
     l_thread = threading.Thread(target = listener, args = (clientsocket,SCREEN))
     
     l_thread.start()
-          
+    
+    load = None 
     
     while True :
         if set_up == False:
@@ -119,7 +122,7 @@ def start(clientsocket,opp,user,un):
             reef = clientsocket.recv(1024)
             reef = reef.split(':')
             reef = reef[1]
-            startGame.main(clientsocket, opp,user,player1,reef)
+            startGame.main(clientsocket, opp,user,player1,reef,load)
             
             break
             
@@ -144,6 +147,8 @@ def start(clientsocket,opp,user,un):
                         player1 = False
         
             
-   
-    
+            if 'click' in buttonLoad.handleEvent(event) and ready == False:
+                print "load"
+                load = "savedGame.dat"
+                
                 

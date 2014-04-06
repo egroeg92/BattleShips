@@ -15,6 +15,10 @@ from Square import Square
 
 from reefGeneration import reefGeneration
 
+
+import pickle
+
+
 FPS = 30
 WINDOWWIDTH = 800
 WINDOWHEIGHT = 750
@@ -346,7 +350,7 @@ def main(clientsocket, opp,user,player,corallist):
     #         clientsocket.send("Reef:"+str(corallist))
     # else:
     #     game = Game(Player1, corallist)
-    
+
     global colx
     global coly
 
@@ -669,6 +673,23 @@ def main(clientsocket, opp,user,player,corallist):
                 ##  QUITTING
                 buttonExit.draw(screen)
 
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_s:
+                        print 'save'
+                        pickle.dump(game,open("savedGame.dat","wb"))
+                    if event.key == pygame.K_l:
+                        game = pickle.load(open("savedGame.dat","rb"))
+                        print turn
+                        print Player1
+                        print shiplist
+                        del shiplist
+                        del op_shiplist
+                        shiplist = game.getCurrentPlayer().getShipList()
+                        op_shiplist = game.getOpponent().getShipList()
+                        print(game.getCurrentPlayer().getShipList())
+
+
+
                 if 'click' in buttonExit.handleEvent(event) and (turnType == '' or turnType == 'position'):
                     print 'quit'
                     if offline:
@@ -676,6 +697,7 @@ def main(clientsocket, opp,user,player,corallist):
                     else:
                         gameOver = True
                         clientsocket.send("LoseGame")
+
 
 
 
