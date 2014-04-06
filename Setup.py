@@ -115,8 +115,10 @@ def start(clientsocket,opp,user,un):
         if op_ready == True and ready == True and listen == False:
 #             clientsocket.send('BreakListener')
             clientsocket.send('StartGame')
-
-            startGame.main(clientsocket, opp,user,player1)
+            reef = clientsocket.recv(1024)
+            reef = reef.split(':')
+            reef = reef[1]
+            startGame.main(clientsocket, opp,user,player1,reef)
             
             break
             

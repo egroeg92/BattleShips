@@ -10,11 +10,11 @@ from Ship import Ship
 from Ship import MineLayer
 from PlayerState import PlayerState
 from Game import Game
-from reefGeneration import reefGeneration
 from Coral import Coral
 from Square import Square
 
 
+from reefGeneration import reefGeneration
 
 FPS = 30
 WINDOWWIDTH = 800
@@ -234,30 +234,7 @@ def listener(clientsocket,screen):
             game.removeMine((x, y))
             turn =True
 
-        elif dataList[0] == 'Reef':
-            #TODO
-            reeflist = dataList[1]
-            reeflist = reeflist.replace("[",'')
-            reeflist = reeflist.replace("]",'')
-            reeflist = reeflist.replace(" ",'')
-            reeflist = reeflist.replace('),(',')||(')
-            reeflist = reeflist.split('||')
-            
-            print reeflist
-            game.setCoral(reeflist)
-            for i in reeflist:
-                z = i.replace('(','')
-                z = z.replace(')','')
-                x = int(z.split(',')[0])    
-                
-                y = int(z.split(',')[1])
-                c = Coral()
-                sq = Square(c,(x,y))
-                game.getBoard().setSquare(x,y, sq)
-            screen.fill(BLACK);
-            updateBoard(game.getBoard(),screen)
-                
-            print 'reef'
+
 
 
 
@@ -281,7 +258,7 @@ def listener(clientsocket,screen):
         # updateBoard(game.getBoard(),screen)
 #         if dataList[0] == 'Move'
    
-def main(clientsocket, opp,user,player):
+def main(clientsocket, opp,user,player,corallist):
     pygame.mixer.init()
     pygame.mixer.music.load('images/titanic.WAV')
     # explosion = pygame.mixer.Sound.load('images/Exploding.WAV')
@@ -322,23 +299,54 @@ def main(clientsocket, opp,user,player):
 
 
     global game
-    corallist = []
-    reefGenerator = reefGeneration()
-    
-    if Player1:
-        game = Game(Player1, corallist)
-        game.updateReef(reefGenerator,corallist,game.getCoral())
-        game.setCoral(corallist)
-        for (x,y) in corallist:
+
+
+	
+
+    if not offline:
+    	game = Game(Player1, []) 
+
+    	reeflist = corallist
+       	reeflist = reeflist.replace("[",'')
+        reeflist = reeflist.replace("]",'')
+        reeflist = reeflist.replace(" ",'')
+        reeflist = reeflist.replace('),(',')||(')
+        reeflist = reeflist.split('||')
+            
+        print reeflist
+        game.setCoral(reeflist)
+        for i in reeflist:
+            z = i.replace('(','')
+            z = z.replace(')','')
+            x = int(z.split(',')[0])    
+                
+            y = int(z.split(',')[1])
             c = Coral()
             sq = Square(c,(x,y))
             game.getBoard().setSquare(x,y, sq)
         screen.fill(BLACK);
         updateBoard(game.getBoard(),screen)
-        if not offline:
-            clientsocket.send("Reef:"+str(corallist))
+        
+        
+        print 'reef'
+
+
     else:
-        game = Game(Player1, corallist)
+    	reeflist = []
+    	game = Game(Player1, reeflist) 
+    	reefGenerator = reefGeneration()
+    	game.updateReef(reefGenerator,reeflist,game.getCoral())
+    	game.setCoral(reeflist)
+    	for (x,y) in reeflist:
+	    	c = Coral()
+	    	sq = Square(c,(x,y))
+	    	game.getBoard().setSquare(x,y, sq)
+		screen.fill(BLACK);
+		updateBoard(game.getBoard(),screen)
+    #     if not offline:
+    #         clientsocket.send("Reef:"+str(corallist))
+    # else:
+    #     game = Game(Player1, corallist)
 
     global colx
     global coly
@@ -2715,4 +2723,4 @@ if __name__ == '__main__':
     global offline
     offline = True
     # main('')
-    main('offline',1,1,False)
+    main('offline',1,1,False,[])

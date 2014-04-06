@@ -14,9 +14,20 @@ import sys
 
 import os
 
+from reefGeneration import reefGeneration
+from Coral import Coral
 count = 0
 lock = threading.Lock()
 
+def generateReef():
+    global reefcount
+    global coralist
+    if(reefcount%2 == 0):
+        rg = reefGeneration()
+        coralist = rg.reefCoordinates([])
+
+    reefcount +=1
+    return coralist
 def handler(clientsocket, clientaddr):
     print "Accepted connection from: ", clientaddr
     print clientsocket
@@ -57,6 +68,15 @@ def handler(clientsocket, clientaddr):
             print "STARTED"
             print 'oppAddr = '+ str(oppAddr)
             print 'oppSock = ' + str(oppSock)
+            
+            lock.acquire()
+            try:
+                coral = generateReef()
+                clientsocket.send("Reef:"+str(coral))
+
+            finally:
+                lock.release() 
+            
 
         elif data == 'WinGame':
             n = un.split(';')
@@ -330,6 +350,8 @@ if __name__ == "__main__":
     global matchup_address
     global matchup_sockets
     global connections
+    global reefcount
+    reefcount = 0
     clients = []
     connections = []
     matchup_sockets = []

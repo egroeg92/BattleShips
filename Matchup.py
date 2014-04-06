@@ -16,7 +16,6 @@ import Start
 import textbox
 
 import Setup
-
 FPS = 30
 WINDOWWIDTH = 800
 WINDOWHEIGHT = 750
