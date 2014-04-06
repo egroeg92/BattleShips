@@ -35,12 +35,44 @@ class Game(object):
             #print game.getBoard().getSquare(x,y).getObjectOn()
             sq = Square(None,(x,y))
             self.getBoard().setSquare(x,y, sq)
-        for x in range(24):
+        self.updateVisibility()
+
+        # generate 24 reef squares        
+
+        i = 0
+        j = 0
+        k = 0
+        l = 0
+
+        while i != 11:
             coordinate = reefGenerator.random()
-            corallist.append(coordinate)  
-        
-        
-                    
+            if coordinate not in corallist:
+                corallist.append(coordinate)
+                i = i + 1
+
+        print "Length of corallist is: ", len(corallist)
+
+        while j != 1:
+            coordinate = reefGenerator.randommid()
+            if coordinate not in corallist:
+                corallist.append(coordinate)
+                j = j + 1
+        print "Length of corallist is: ", len(corallist)
+
+        while k != 1:
+            coordinate = reefGenerator.randommid2()
+            if coordinate not in corallist:
+                corallist.append(coordinate)
+                k = k + 1
+        print "Length of corallist is: ", len(corallist)
+
+        while l != 11:
+            coordinate = reefGenerator.random2()
+            if coordinate not in corallist:
+                corallist.append(coordinate)
+                l = l + 1
+        print "Length of corallist is: ", len(corallist)  
+                  
     def getCurrentPlayer(self):
         return self.player1
     

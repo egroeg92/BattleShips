@@ -13,7 +13,6 @@ from Game import Game
 from Coral import Coral
 from Square import Square
 
-
 from reefGeneration import reefGeneration
 
 FPS = 30
@@ -347,7 +346,7 @@ def main(clientsocket, opp,user,player,corallist):
     #         clientsocket.send("Reef:"+str(corallist))
     # else:
     #     game = Game(Player1, corallist)
-
+    
     global colx
     global coly
 
@@ -781,7 +780,7 @@ def main(clientsocket, opp,user,player,corallist):
                                     elif ship.getOrientation() == "S":
                                         back_postion = ship.getPositionList()[-1]
             
-                                        if x >= 0 and x <= 29 and y > back_postion[1] and y <= 29:
+                                        if x >= 0 and x <= 29 and y >= back_postion[1] and y <= 29:
                                             if VISIBLE:
                                                 #print "move"
                                                 game.moveShip(x, y, True);
