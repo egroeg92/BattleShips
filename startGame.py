@@ -1008,6 +1008,7 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                                                     game.moveShip(p,q, True)            
                                                     MLIST = ()
                                                     mine = True
+                                                    message = "MINE hit at "+str(p)+' '+str(q)
                                                 else:           
                                                     game.moveShip(x, y, True)
 
@@ -1069,7 +1070,9 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                                                     print p,q            
                                                     game.moveShip(p,q, True)            
                                                     MLIST = ()
-                                                    mine = True          
+                                                    mine = True
+
+                                                    message = "MINE hit at "+str(p)+' '+str(q)          
                                                 else:           
                                                     game.moveShip(x, y, True)
                                                 
@@ -1121,7 +1124,9 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                                                     q = MLIST[1]            
                                                     game.moveShip(p,q, True)            
                                                     MLIST = ()
-                                                    mine = True          
+                                                    mine = True     
+
+                                                    message = "MINE hit at "+str(p)+' '+str(q)     
                                                 else:           
                                                     game.moveShip(x, y, True)
 
@@ -1171,7 +1176,9 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                                                     p = MLIST[0]            
                                                     q = MLIST[1]            
                                                     game.moveShip(p,q, True)            
-                                                    MLIST = ()          
+                                                    MLIST = ()    
+                                                    
+                                                    message = "MINE hit at "+str(p)+' '+str(q)      
                                                 else:           
                                                     game.moveShip(x, y, True)
                                                 if not offline:

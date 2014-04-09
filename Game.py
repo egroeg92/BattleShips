@@ -222,6 +222,12 @@ class Game(object):
                     self.updateVisibilityRadar()
                     return 1
                 elif(ship.getName() == "MineLayer"):
+                    print "IN HERE"
+                    health = ship.getHealth()
+                    print health
+                    health[0] = 0
+                    health[1] = 0
+                    print sum(health)
                     ship.destroyShip(self.gameBoard)
                     self.updateVisibility()
                     self.updateVisibilityRadar()
@@ -253,6 +259,12 @@ class Game(object):
                     self.updateVisibilityRadar()
                     return 1
                 elif(ship.getName() == "MineLayer"):
+                    print "IN HERE"
+                    health = ship.getHealth()
+                    print health
+                    health[0] = 0
+                    health[1] = 0
+                    print sum(health)
                     ship.destroyShip(self.gameBoard)
                     self.updateVisibility()
                     self.updateVisibilityRadar()
@@ -287,7 +299,12 @@ class Game(object):
                     self.updateVisibilityRadar()
                     return 1
                 elif(ship.getName() == "MineLayer"):
-                    print "SLUTS"
+                    print "IN HERE"
+                    health = ship.getHealth()
+                    print health
+                    health[0] = 0
+                    health[1] = 0
+                    print sum(health)
                     ship.destroyShip(self.gameBoard)
                     self.updateVisibility()
                     self.updateVisibilityRadar()
@@ -788,7 +805,7 @@ class Game(object):
                     for y1 in range(l[0][1] - 2, l[0][1] + 3):
                         radarList.append((x1, y1))
 
-        for i in range(30):
+        for i in range(30): 
             for j in range(30):
 
 
@@ -806,7 +823,8 @@ class Game(object):
         for i in range(30):
             for j in range(30):
                 if(i,j) in sonarList:
-                    self.gameBoard.getSquare(i,j).setSonarVisible(True)
+                    if sum(ship.getHealth()):
+                        self.gameBoard.getSquare(i,j).setSonarVisible(True)
                 else:
                     self.gameBoard.getSquare(i,j).setSonarVisible(False)
 
@@ -855,7 +873,7 @@ class Game(object):
                         if sum(health) == 0:
                             o.destroyShip(self.gameBoard)
                             self.updateVisibility()
-                            
+
                             self.updateVisibilityRadar()
                             continue
     
