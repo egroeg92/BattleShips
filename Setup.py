@@ -16,6 +16,10 @@ import textbox
 import Matchup
 import startGame
 
+from Tkinter import *
+from tkFileDialog import askopenfilename
+
+
 FPS = 30
 WINDOWWIDTH = 800
 WINDOWHEIGHT = 750
@@ -27,12 +31,33 @@ GREEN = (0, 255, 0)
 BLACK = (0, 0, 0, 0.8)
 
 FONT = pygame.font.SysFont("Arial", 14)
+master = Tk()
+
+def callback():
+    global lg 
+    lg = True
+    master.destroy()
+def never():
+    global lg
+    lg = False
+    print "never!"
+    master.destroy()
+def button():
+
+    b = Button(master, text="OK", command=callback)
+    n = Button(master,text="NEVER!", command = never)
+    b.pack(fill=BOTH,expand=1)
+    n.pack(fill=BOTH,expand =1)
+    master.mainloop()
+
 
 def listener(clientsocket,SCREEN):
     global set_up
     global op_ready
     global ready
     global listen
+    global loadGame
+    global lg
     while True :
         data = clientsocket.recv(1024)
         print 'SET UP : data recv '+ str(data)
@@ -61,7 +86,15 @@ def listener(clientsocket,SCREEN):
             listen = False
             print 'break listener!!'
             break
-        
+        if data[:5]=='Load:':
+            button()
+            if lg:
+                clientsocket('yesLoad:'+str(o))
+                l = data.split(':')
+                loadGame = l[-1]
+                print loadGame
+            else:
+                clientsocket.send('noLoad:'+str(o))
         if op_ready == True and ready == True:
             listen = False
             print 'break listener,both ready'
@@ -73,6 +106,9 @@ def start(clientsocket,opp,user,un):
 
     print 'Set up'+str(threading.activeCount())
     print 'opp = '+ opp
+
+    global o
+    o = opp
     windowBgColor = BLACK
     
     # pygame.init()
@@ -99,7 +135,8 @@ def start(clientsocket,opp,user,un):
     global set_up
     global op_ready
     global ready
-    
+    global loadGame
+    loadGame = ''
     listen = True
     op_ready = False
     set_up = True
@@ -121,8 +158,13 @@ def start(clientsocket,opp,user,un):
             clientsocket.send('StartGame')
             reef = clientsocket.recv(1024)
             reef = reef.split(':')
-            reef = reef[1]
-            startGame.main(clientsocket, opp,user,player1,reef,load)
+            
+            print reef
+            print reef[2]
+            if reef[2] != '':
+                loadGame = reef[2]
+
+            startGame.main(clientsocket, opp,user,player1,reef[1],loadGame)
             
             break
             
@@ -149,6 +191,27 @@ def start(clientsocket,opp,user,un):
             
             if 'click' in buttonLoad.handleEvent(event) and ready == False:
                 print "load"
-                load = "savedGame.dat"
+                Tk().withdraw() 
+                filename = askopenfilename()
+                if(filename[-4]+filename[-3]+filename[-2]+filename[-1] != '.bsh'):
+                    print 'not a Name'
+                    label = FONT.render("Wrong file extension - can only load .bsh", 1, (255,255,0))
+                    SCREEN.blit(label, (100, 100))
+    
+                else:
+                    load = filename
+                    clientsocket.send("Load:"+'/'+str(opp)+'/'+filename)
+                    data = clientsocket.recv(1024)
+
+                    if (data =='yesLoad'):
+                        label = FONT.render("Opponent accepted Load", 1, (255,255,0))
+                        SCREEN.blit(label, (100, 100))
+                    else:
+                        label = FONT.render("Opponent rejected Load", 1, (255,255,0))
+                        SCREEN.blit(label, (100, 100))
+                        load = ''
+
+    
+
                 
                 

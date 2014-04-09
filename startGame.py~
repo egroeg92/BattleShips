@@ -1,22 +1,18 @@
+import pickle
+
 import pygame, pygbutton, sys
 from pygame.locals import *
 from socket import *
 import threading
 import Matchup
-import endGame
 from Board import Board
-from Weapon import Mine
 from Ship import Ship
-from Ship import MineLayer
 from PlayerState import PlayerState
 from Game import Game
+
 from Coral import Coral
 from Square import Square
-
 from reefGeneration import reefGeneration
-
-import textbox
-import pickle
 
 FPS = 30
 WINDOWWIDTH = 1250
@@ -30,8 +26,11 @@ BLACK = (0, 0, 0, 0.8)
 DARKGRAY = (20,20,20)
 GRAY = (70,70,70)
 
+global moveValid
 moveValid = False
+global positionValid
 positionValid = False
+global  VISIBLE
 VISIBLE = True
 
 FONT = pygame.font.SysFont("Arial", 14)
@@ -143,123 +142,61 @@ def drawSelectedPanel(screen, shiplist):
 #             screen.blit(FONT.render("Kamikaze x"+str(ocount[5]), 1, BLACK),(1000,590))
 
 
+
 def listener(clientsocket,screen):
+    global active
     global turn
     global op_positioned
-    global op_positionedShips
-    global gameOver
-    global win
-    global shiplist
-    global op_shiplist
-    global acceptreef
-    global reefReq
-
-    global turnType
-
-    shiplist = game.getCurrentPlayer().getShipList()
-    op_shiplist = game.getOpponent().getShipList()
     # global turnType
     while True:
         data = clientsocket.recv(1024)
         print 'Active Game data recv ' +str(data)
         # screen.fill(GRAY)  # Put this here temporarily to see the output
+        #pygame.draw.rect(screen, BLACK, [100, 650 , 500, 50])
         drawMessagePanel(screen, turn)
-        # updateBoard(game.getBoard(),screen, turn)
+        # updateBoard(game.getBoard(),screen)
 
         if data == 'Win':
             print 'winner'
-            clientsocket.send("WinGame")
-            win = True
-            gameOver = True
-            break
+            active = False
+            # Matchup.start(clientsocket,'username')
 
+            break
         if data == 'Lose':
             print 'loser'
-            win = False
-            gameOver = True
-            break
+            # Matchup.start(clientsocket,'username')
 
+            active = False
+            break
         dataList = []
 
         dataList = data.split(':')
         if dataList[0] == 'Move':
-            #print 'moving'
-
             
             ship = op_shiplist[int(dataList[1])]
-            #print str(ship.getName())
+
             x = int(dataList[2])
             y = int(dataList[3])
             vis = dataList[4]
-            setKa = dataList[5]
-
             ship.setSelected(True)
             
             if vis == 'True':
-            	if (setKa == 'True'):
-                    game.detonateKamikaze()
-
                 game.moveShip(x,y,True)
                 game.getBoard().setNot(-1,-1,screen)
-                updateBoard(game.getBoard(),screen, turn)
+                updateBoard(game.getBoard(),screen)
             else:
                 game.moveShip(x,y,False)
                 
                 string =  'collision at '+ str(x)  +' ' +str(y)
-                notifier = FONT.render(string, 1, (255,255,255))
-                screen.blit(notifier, (200, WINDOWHEIGHT - 100))
+                notifier = FONT.render(string, 1, BLACK)
+                screen.blit(notifier, (750,50))               
                 game.getBoard().setNot(x,y,screen)
-                updateBoard(game.getBoard(),screen, turn)
+                updateBoard(game.getBoard(),screen)
 
 
             ship.setSelected(False)
             # ship.move(int(dataList[2]))
             turn = True
-            game.setTurn(True)
-
-        elif dataList[0] == 'ReefRequest':
-            reeflist = dataList[1]
-
-
-            reeflist = reeflist.replace("[",'')
-            reeflist = reeflist.replace("]",'')
-
-            reeflist = reeflist.replace(" ",'')
-            reeflist = reeflist.replace('),(',')||(')
-            reeflist = reeflist.split('||')
-                
-            print "RECEIVED ",reeflist,len(reeflist)
-            l = []
-            for i in reeflist:
-                z = i.replace('(','')
-                z = z.replace(')','')
-                x = int(z.split(',')[0])    
-                    
-                y = int(z.split(',')[1])
-                l.append((x,y))
-
-            print "RE ", l ,len(l)
-            game.setCoral(l)
-
-            screen.fill(GRAY);
-            updateBoard(game.getBoard(),screen, turn)
-            reefReq = True
-            turnType = "reef"
-
-        elif dataList[0] == 'ReefAccept':
-            print "lol"
-            turnType = "accept"
-        elif dataList[0] == 'ReefReject':
-            print 'yo'
-            turnType = "reef"
-
-        elif dataList[0] == 'Repair':
-            ship = op_shiplist[int(dataList[1])]
-            game.repairShip(ship)
-            updateBoard(game.getBoard(),screen, turn)
-            turn = True
-            game.setTurn(True)
-
         
         elif dataList[0] == 'Turn':
             #print'turning'
@@ -272,19 +209,14 @@ def listener(clientsocket,screen):
                 if vis == 'True':
                     game.rotate(ship,rot,True,True)
                     game.getBoard().setNot(-1,-1,screen)
-                    updateBoard(game.getBoard(),screen, turn)
+                    updateBoard(game.getBoard(),screen)
                 else:
                     game.rotate(ship,rot,True,False)
                     string =  'collision at '+ str(x) +' ' +str(y)
-                    notifier = FONT.render(string, 1, (255,255,255))
-                    # listbox.insert(END, string)
-                    screen.blit(notifier, (200, WINDOWHEIGHT - 100))
+                    notifier = FONT.render(string, 1, BLACK)
+                    screen.blit(notifier, (750,50))
                     game.getBoard().setNot(x,y,screen)
-                    updateBoard(game.getBoard(),screen, turn)
-
-
-
-
+                    updateBoard(game.getBoard(),screen)
                 
             else:
                 if vis == 'True':
@@ -293,17 +225,12 @@ def listener(clientsocket,screen):
                 else:
                     game.rotate(ship,rot,False,False)
                     string =  'collision at '+ str(x)  +' ' +str(y)
-                    notifier = FONT.render(string, 1, (255,255,255))
-                    # listbox.insert(END, string)
-                    screen.blit(notifier, (200, WINDOWHEIGHT - 100))
-                    updateBoard(game.getBoard(),screen, turn)
+                    notifier = FONT.render(string, 1, BLACK)
+                    screen.blit(notifier, (750,50))
+                    updateBoard(game.getBoard(),screen)
                     game.getBoard().setNot(x,y,screen)
 
-
-
-
             turn = True
-            game.setTurn(True)
         
         elif dataList[0] == 'Cannon':
             #print 'cannon'
@@ -318,15 +245,13 @@ def listener(clientsocket,screen):
 
             print resultString
 
-            notifier = FONT.render(resultString, 1, (255,255,255))
-            # listbox.insert(END, resultString)
+            notifier = FONT.render(resultString, 1, BLACK)
             ship.setSelected(False)
-            screen.blit(notifier, (200, WINDOWHEIGHT - 100))
+            screen.blit(notifier,(750,50))
             game.getBoard().setNot(x,y,screen)
-            updateBoard(game.getBoard(),screen, turn)
+            updateBoard(game.getBoard(),screen)
 
             turn = True
-            game.setTurn(True)
 
         elif dataList[0] == 'HCannon':
             #print 'heavycannon'
@@ -342,17 +267,13 @@ def listener(clientsocket,screen):
             print resultString
 
             
-            notifier = FONT.render(resultString, 1, (255,255,255))
-
-            # listbox.insert(END, resultString)
-
+            notifier = FONT.render(resultString, 1,BLACK)
             ship.setSelected(False)
-            screen.blit(notifier, (200, WINDOWHEIGHT - 100))
+            screen.blit(notifier, (750,50))
             game.getBoard().setNot(x,y,screen)
-            updateBoard(game.getBoard(),screen, turn)
+            updateBoard(game.getBoard(),screen)
 
             turn = True
-            game.setTurn(True)
         elif dataList[0] == 'Torpedo':
             #print 'torpedo'
             ship = op_shiplist[int(dataList[1])]
@@ -372,46 +293,13 @@ def listener(clientsocket,screen):
 
 
 
-            notifier = FONT.render(resultString, 1, (255,255,255))
-            # listbox.insert(END, resultString)
-
+            notifier = FONT.render(resultString, 1, BLACK)
             ship.setSelected(False)
-            screen.blit(notifier, (200, WINDOWHEIGHT - 100))
+            screen.blit(notifier, (750,50))
             game.getBoard().setNot(x,y,screen)
-            updateBoard(game.getBoard(),screen, turn)
+            updateBoard(game.getBoard(),screen)
 
             turn = True
-            game.setTurn(True)
-        elif dataList[0] =='MineDrop':
-            x = int(dataList[1])
-            y = int(dataList[2])
-            mine = Mine(1, 0, 0, (x,y)) 
-            
-            game.dropMineOnBoard(mine, (x,y))
-            addMineList((x,y))
-            turn = True
-            game.setTurn(True)
-        elif dataList[0] == 'MinePick':
-            x = int(dataList[1])
-            y = int(dataList[2])
-            removeMineList((x,y))
-            game.removeMine((x, y))
-            turn =True
-            game.setTurn(True)
-
-        elif dataList[0] == 'Save':
-            print 'opSaved ', dataList[1]
-            savefile = dataList[1]
-
-            if Player1:
-                pickle.dump(game,open('savedGames/'+savefile+".bsh","wb"))
-            else:
-                pickle.dump(game,open('savedGames2/'+savefile+".bsh","wb"))
-
-
-
-
-
 
         else:
             dataList = data[1:-1]
@@ -422,34 +310,50 @@ def listener(clientsocket,screen):
             
             if dataList[0] == 'Position':
                 dataList = dataList[:-2]
+                #print 'position'
+                #print 'dataList',dataList
                 dataList.reverse()
+                #print 'dataList R',dataList
+                #print len(dataList)
+                # dataList.pop()
 
-                op_positionedShips = dataList
+                while len(dataList) >0:
+                    dataList.pop()
+                    ship = op_shiplist[int(dataList.pop())]
+                    #print "SHIP NAME"+str(ship.getSubclass())
+                    x = int(dataList.pop())
+                    y = int(dataList.pop())
+                    d = dataList.pop()
+                    ship.setSelected(True)
+                    if Player1: #then positioning player 2
+                        if d == 'W':
+                            p =0
+                        elif d =='N':
+                            p =1
+                        elif d =='E':
+                            p =2
+                        elif d == 'S':
+                            p = 3
+                    else:
+                        if d == 'E':
+                            p = 0
+                        elif d =='S':
+                            p =1
+                        elif d =='W':
+                            p =2
+                        elif d =='N':
+                            p = 3
 
+                    game.positionShip(x, y, p)
+                    ship.setSelected(False)
 
                 op_positioned = True
 
-
-        # updateBoard(game.getBoard(),screen, turn)
-#         if dataList[0] == 'Move'
-   
-def main(clientsocket, opp,user,player,corallist,loadGame):
-    print 'user ',user
-    print 'opp ', opp
-
-    pygame.mixer.init()
-    pygame.mixer.music.load('images/titanic.WAV')
-    # explosion = pygame.mixer.Sound.load('images/Exploding.WAV')
-    pygame.mixer.music.play()    
+        
+def main(clientsocket, opp,user,player,corallist):
+    
     # for offine play (for debugging)
-    global positiontext
-    global positiontext1
-    positiontext = FONT.render("Click on your ships to position them.", 1, BLACK)
-    positiontext1 = FONT.render("(You can only position ships on your side of the board.)", 1, BLACK)
 
-
-    global win
-    win = False
     global offline
     offline = False
     if clientsocket == 'offline':
@@ -468,153 +372,60 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
     # true if the op has placed there ships
     global op_positioned 
     op_positioned = False
-    global mineList 
-    mineList = []
-    global mine
 
     ## creating the screen
 
     screen = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
-    
     pygame.display.set_caption('Battle Ships')
     
     ## Game object
 
-    global turnType
-    turnType = "reef"
     global game
-
-    global turn
-    turn = True
-    
-    global acceptreef
-    acceptreef = False
-
-    global reefReq
-    reefReq = False
-    
-    global positioned
-    positioned = False
-
-    global buttonPositionShips
-    buttonRotate = pygbutton.PygButton((1090, 400, 120, 30), 'Rotate Ship')
-    buttonPositionShips = pygbutton.PygButton((1040, 610, 170, 30), 'Done Positioning Ships')
-    buttonLongRadar = pygbutton.PygButton((1065, 520, 145, 30), 'Long Radar Toggle')
-
-    buttonMove = pygbutton.PygButton((1090, 400, 120, 30), 'Move Ship')
-    buttonMove2 = pygbutton.PygButton((1090,400,120,30), 'Move Ship')
-    buttonTurn = pygbutton.PygButton((1090, 440, 120, 30), 'Turn Ship')
-    buttonFire = pygbutton.PygButton((1090, 480, 120, 30), 'Fire Weapon')
-    kbuttonFire = pygbutton.PygButton((1090, 520, 120, 30), 'Arm Explosives')
-    buttonDropMine = pygbutton.PygButton((1090, 520, 120, 30), 'Drop Mine')
-    buttonPickUpMine = pygbutton.PygButton((1090, 560, 120, 30), 'Pickup Mine')
-
-    
-    # shipOptions = [buttonMove, buttonTurn, buttonFire, buttonDropMine, buttonPickUpMine]
-    # kshipOptions = [buttonMove, kbuttonFire]
-    # positionOptions = [buttonRotate]
-    global buttonCannon
-    global buttonHeavyCannon
-    global buttonTorpedo
-    buttonCannon = pygbutton.PygButton((1090, 400, 120, 30), 'Cannon')
-    buttonHeavyCannon = pygbutton.PygButton((1090, 440, 120, 30), 'HeavyCannon')
-    buttonTorpedo = pygbutton.PygButton((1090, 480, 120, 30), 'Torpedo')
-  
-    buttonSave = pygbutton.PygButton((960, 660, 120, 30), 'Save Game')
-    buttonExit = pygbutton.PygButton((1090, 660, 120, 30), 'Quit')
-
-
-    buttonRequestReef = pygbutton.PygButton((760, 660, 120, 30), 'Request Reef')
-    buttonReef = pygbutton.PygButton((630, 660, 120, 30), 'New Reef')
-
-    buttonAcceptReef = pygbutton.PygButton((630, 660, 120, 30), 'Accept Reef')
-    buttonRejectReef = pygbutton.PygButton((760, 660, 120, 30), 'Reject Reef')
-
-    global shipOptions
-    global mshipOptions
-    global kshipOptions
-    global shipOptions2
-    global shipOptionsRadar
-    global positionOptions
-    global buttonRepair
-
-    shipOptions = [buttonMove, buttonTurn, buttonFire]
-    mshipOptions = [buttonMove, buttonTurn, buttonFire, buttonDropMine, buttonPickUpMine]
-    kshipOptions = [buttonMove, kbuttonFire]
-
-    shipOptions2 = [buttonTurn, buttonFire, buttonLongRadar]
-    shipOptionsRadar = [buttonMove2, buttonTurn, buttonFire, buttonLongRadar]
-    
-    positionOptions = [buttonRotate]
-
-    buttonRepair = pygbutton.PygButton((1090, 400, 120, 30), 'Repair')    
-	
-
     if not offline:
-        if loadGame == '':
-            game = Game(Player1,[],user,opp)
-            reeflist = corallist
-            reeflist = reeflist.replace("[",'')
-            reeflist = reeflist.replace("]",'')
+    	game = Game(Player1, []) 
 
-            reeflist = reeflist.replace(" ",'')
-            reeflist = reeflist.replace('),(',')||(')
-            reeflist = reeflist.split('||')
+    	reeflist = corallist
+       	reeflist = reeflist.replace("[",'')
+        reeflist = reeflist.replace("]",'')
+        reeflist = reeflist.replace(" ",'')
+        reeflist = reeflist.replace('),(',')||(')
+        reeflist = reeflist.split('||')
+            
+        print reeflist
+        game.setCoral(reeflist)
+        for i in reeflist:
+            z = i.replace('(','')
+            z = z.replace(')','')
+            x = int(z.split(',')[0])    
                 
-            
-            l = []
-            for i in reeflist:
-                z = i.replace('(','')
-                z = z.replace(')','')
-                x = int(z.split(',')[0])    
-                    
-                y = int(z.split(',')[1])
-                l.append((x,y))
-            
-            game.setCoral(l)
-            screen.fill(GRAY);
-            updateBoard(game.getBoard(),screen, turn)
-        else:
-            if(Player1):
-                l = 'savedGames/'+loadGame 
-            else:
-                l = 'savedGames2/'+loadGame
-            game = pickle.load(open(l,"rb"))
-            shiplist = []
-            op_shiplist = []
-            turnType = game.getTurnType()
-
-            shiplist = game.getCurrentPlayer().getShipList()
-            op_shiplist = game.getOpponent().getShipList()
-            
-            if(game.getTurn() == True):
-                turn = True
-            else:
-                turn = False
-            
-            print turn
-            turnType = ''
-            positioned = True
+            y = int(z.split(',')[1])
+            c = Coral()
+            sq = Square(c,(x,y))
+            game.getBoard().setSquare(x,y, sq)
+        screen.fill(BLACK);
+        updateBoard(game.getBoard(),screen)
+        
+        
         print 'reef'
 
 
     else:
-        print "reef"
-        reeflist = []
-        game = Game(Player1, reeflist,user,opp)
-        game.setCoral(reeflist)
-        for(x,y) in reeflist:
-            c = Coral()
-            sq = Square(c,(x,y))
-            game.getBoard().setSquare(x,y,sq)
-
-    	screen.fill(GRAY);
-    	updateBoard(game.getBoard(),screen, True)
+    	reeflist = []
+    	game = Game(Player1, reeflist) 
+    	reefGenerator = reefGeneration()
+    	game.updateReef(reefGenerator,reeflist,game.getCoral())
+    	game.setCoral(reeflist)
+    	for (x,y) in reeflist:
+	    	c = Coral()
+	    	sq = Square(c,(x,y))
+	    	game.getBoard().setSquare(x,y, sq)
+		screen.fill(BLACK);
+		updateBoard(game.getBoard(),screen)
     #     if not offline:
     #         clientsocket.send("Reef:"+str(corallist))
     # else:
     #     game = Game(Player1, corallist)
-    
+
     global colx
     global coly
 
@@ -623,53 +434,68 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
 
     ## creating the button objects
 
+    buttonRotate = pygbutton.PygButton((1090, 400, 120, 30), 'Rotate Ship')
+    buttonPositionShips = pygbutton.PygButton((1040, 610, 170, 30), 'Done Positioning Ships')
 
+    buttonMove = pygbutton.PygButton((1090, 400, 120, 30), 'Move Ship')
+    buttonTurn = pygbutton.PygButton((1090, 440, 120, 30), 'Turn Ship')
+    buttonFire = pygbutton.PygButton((1090, 480, 120, 30), 'Fire Weapon')
+    kbuttonFire = pygbutton.PygButton((1090, 520, 120, 30), 'Arm Explosives')
+    
+    shipOptions = [buttonMove, buttonTurn, buttonFire]
+    kshipOptions = [buttonMove, kbuttonFire]
+    positionOptions = [buttonRotate]
+
+    buttonCannon = pygbutton.PygButton((1090, 400, 120, 30), 'Cannon')
+    buttonHeavyCannon = pygbutton.PygButton((1090, 440, 120, 30), 'HeavyCannon')
+    buttonTorpedo = pygbutton.PygButton((1090, 480, 120, 30), 'Torpedo')
+  
+    buttonSave = pygbutton.PygButton((960, 660, 120, 30), 'Save Game')
+    buttonExit = pygbutton.PygButton((1090, 660, 120, 30), 'Quit')
+    
+    #messages
+    
+    
     ## start the listener thread if playing not offline
 
     if not offline:
         l_thread = threading.Thread(target = listener, args = (clientsocket,screen))
         l_thread.start()
 
+    ## game active
+
+    global active
+    active = True
 
     ## turn is true if its your turn, false if its the opponents turn
 
+    global turn
+    
     global shiplist
     global op_shiplist
     
-    global baselist
-    global op_baselist
-    
     shiplist = []
     op_shiplist = []
-
-    baselist = []
-    op_baselist = [] 
-
+    
     shiplist = game.getCurrentPlayer().getShipList()
     op_shiplist = game.getOpponent().getShipList()
 
-    baselist = game.getCurrentPlayer().getBase().getPositionList()
-    op_baselist = game.getOpponent().getBase().getPositionList()
+    turn = True
 
-
-
-
+    global turnType
+    turnType = "position"
+    
     global armKamikaze
     armKamikaze = False
 
+    global positioned 
+    positioned = False
     
     global positionRotation
     positionRotation = 0
 
     global resultString
     resultString = ""
-
-
-    global longRadar
-    longRadar = False
-
-    global radarboatselected
-    radarboatselected = False    
 
     ## booleans for what kind of weapon options to display (initiated to none)
     cannon = False
@@ -680,179 +506,94 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
     drawStatPanel(screen, shiplist, op_shiplist)
     drawSelectedPanel(screen, shiplist)
     drawMessagePanel(screen, turn)
+    #gamestats
 
+    positiontext = FONT.render("Click on your ships to position them.", 1, BLACK)
+    positiontext1 = FONT.render("(You can only position ships on your side of the board.)", 1, BLACK)
 
-
-    global op_positionedShips
-    op_positionedShips = []
-
-    global gameOver
-    gameOver = False
-    global validDrop            
-    validDrop = False
 #####################################################
 ##                                                 ##
 ##              MAIN GAME LOOP                     ##
 ##                                                 ##
 #####################################################
     while True:
-
-        # print turnType
-
-        if gameOver:
-            endGame.start(clientsocket,user,opp,win)
-            # Matchup.start(clientsocket,user)
+        
+        if active != True:
             break
-        # print user
-        for s in shiplist:
-            if(sum(s.getHealth()) == 0):
-                shiplist.remove(s)
-
-
-
-        for s in op_shiplist:
-            if(sum(s.getHealth()) == 0):
-                op_shiplist.remove(s)
-
-        if len(shiplist)==0:
-            # lose
-            gameOver = True
-            clientsocket.send("LoseGame")
 
         ## if offline its always your turn, (for debugging)
         if offline:
             turn = True
-            game.setTurn(True)
-
-        if positioned and op_positioned:
-            while len(op_positionedShips) >0:
-                op_positionedShips.pop()
-                ship = op_shiplist[int(op_positionedShips.pop())]
-                #print "SHIP NAME"+str(ship.getName())
-                x1 = int(op_positionedShips.pop())
-                y1 = int(op_positionedShips.pop())
-                d1 = op_positionedShips.pop()
-                ship.setSelected(True)
-                if Player1: #then positioning player 2
-                    if d1 == 'W':
-                        p =0
-                    elif d1 =='N':
-                        p =1
-                    elif d1 =='E':
-                        p =2
-                    elif d1 == 'S':
-                        p = 3
-                else:
-                    if d1 == 'E':
-                        p = 0
-                    elif d1 =='S':
-                        p =1
-                    elif d1 =='W':
-                        p =2
-                    elif d1 =='N':
-                        p = 3
-
-                game.positionShip(x1, y1, p)
-                ship.setSelected(False)
-
 
         ## Player 1 always has first turn 
         if Player1 and op_positioned == True and turnType == "":
             turn = True
-            game.setTurn(True)
             op_positioned = False
-       
+        
+        ## can only quit if its your turn
         drawMessagePanel(screen, turn)  
         drawSelectedPanel(screen, shiplist)
         drawStatPanel(screen, shiplist, op_shiplist)
       
-        ## can only quit if its your turn
+        if turn:
+            buttonExit.draw(screen)
+            buttonSave.draw(screen)
+
+            if not positioned:
+                screen.blit(positiontext, (850, 40))
+                screen.blit(positiontext1, (780, 60))
+                buttonPositionShips.draw(screen)
+        
+        else:
+            updateBoard(game.getBoard(),screen)
+
 
         game.getBoard().animate(screen,(pygame.time.get_ticks()/500)%2)
-        if turnType == '':
-            updateBoard(game.getBoard(),screen, turn)
+        
 
         ## draw the ships
-        
-
-        if turn:
-            buttonSave.draw(screen)
-            buttonExit.draw(screen)
-            
-            if turnType == "reef" and Player1:
-                buttonRequestReef.draw(screen)
-                buttonReef.draw(screen)
-
-            if not Player1 and not acceptreef and reefReq :
-                buttonAcceptReef.draw(screen)
-                buttonRejectReef.draw(screen)
-            
-            if not positioned and acceptreef == True:
-                
-                screen.fill(GRAY)
-                screen.blit(positiontext, (200, WINDOWHEIGHT - 100))
-                buttonPositionShips.draw(screen)
-                print "NO"
-                turnType = "position"
+        for s in shiplist:
+            if (s.isSelected() and positioned and s.getSubclass() != 'Kamikaze'):
+                screen.fill(GRAY)  # Put this here temporarily to see the output
+                for o in shipOptions:
+                    o.draw(screen)
+            elif (s.isSelected() and positioned and s.getSubclass() == 'Kamikaze'):
+                screen.fill(GRAY)  # Put this here temporarily to see the output
+                for o in kshipOptions:
+                    o.draw(screen)
         
         
-
         if (turnType == "positionActive"):
             for s in shiplist:
                 if (s.isSelected() and s.getSubclass() != "Kamikaze"):
                     for o in positionOptions:
                         o.draw(screen)
-
-
+                
+            
 
         ## if firing
-
-        # print turnType 
-        if (turnType == "baseRepair"):
+        if (turnType == "fire"):
             screen.fill(GRAY);
             buttons = []
-            dockedships = []
-            p1 = ()
-            p2 = ()
-            p3 = ()
-
-            # print "Current Player is selected: ", game.getCurrentPlayer().getBase().isSelected()
-            # print "Opponent Player is selected: ", game.getOpponent().getBase().isSelected()                                
-            
-            if game.getCurrentPlayer().getBase().isSelected() == True:
-                for (x,y) in baselist:
-                    obj = game.getBoard().getSquare(x,y).getObjectOn()
-                    if obj != None and obj.getClassName() == "Base":
-                        p1 = (x, y-1) 
-                        p2 = (x, y+1)
-                        
-                        if Player1:
-                            p3 = (x+1, y)
-                        else:
-                            p3 = (x-1, y)
-
-                        
-                        for ship in shiplist:
-                            ship.setDocked(False)
-                            
-                        for ship in shiplist:
-                            poslist = ship.getPositionList()
-                            # print poslist
-                            if (p1 in poslist) or (p2 in poslist) or (p3 in poslist) and ship not in dockedships:
-                                #print ship.getNaming()
-                                dockedships.append(ship)
-                                ship.setDocked(True)
-                                # print 'repairable ' ,ship.getName()
-
-
-
             for ship in shiplist:
-                if ship in dockedships and ship.isSelected() and sum(ship.getHealth()) < ship.getHealthSum():
+                if ship.isSelected():
+                    cannon = False
+                    torpedo = False
+                    hcannon = False    
+                    weaponList = ship.getWeaponList()
                     
-                    buttonRepair.draw(screen)
-
-
-            # print 'type',turnType               
+                    for weapon in weaponList:
+                        if weapon.getSubclass() == "Cannon":
+                            buttons.append(buttonCannon)
+                            cannon = True
+                        if weapon.getSubclass() == "HeavyCannon":
+                            buttons.append(buttonHeavyCannon)
+                            hcannon = True
+                        if weapon.getSubclass() == "Torpedo":
+                            buttons.append(buttonTorpedo)
+                            torpedo = True
+            for button in buttons:
+                button.draw(screen)
 
 
 ########################################################
@@ -862,53 +603,16 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
 ########################################################  
 
         for event in pygame.event.get():
-            if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_s:
-                        print 'save'
-                        game.getCurrentPlayer
-                        if Player1:
-                            pickle.dump(game,open("savedGames/savedGame.bsh","wb"))
-                        else:
-                            pickle.dump(game,open("savedGames2/savedGame.bsh","wb"))
-                            
-                    if event.key == pygame.K_l:
-                        if Player1:
-                            game = pickle.load(open("savedGames/savedGame.bsh","rb"))
-                        else:
-                            game = pickle.load(open("savedGames2/savedGame.bsh","rb"))
-                        print turn
-                        print Player1
-                        print shiplist
-                        del shiplist
-                        del op_shiplist
-                        
-                        shiplist = game.getCurrentPlayer().getShipList()
-                        op_shiplist = game.getOpponent().getShipList()
-                        
-                        for s in shiplist:
-                            print s.getPositionList()
-                        for s in op_shiplist:
-                            print s.getPositionList()
 
-                        game.getCurrentPlayer().getUsername()
             ## set isSelected to True if a ship isSelected
-
             isKamikaze = False;
-            for q in shiplist:
+            for ship in shiplist:
                 isSelected = True
-                if q.isSelected():
-                    if q.getSubclass() == 'Kamikaze':
+                if ship.isSelected():
+                    if ship.getSubclass() == 'Kamikaze':
                         isKamikaze = True;
                     break
                 isSelected = False
-
-            # set radarboatselected True if RadarBoat is selected
-            for w in shiplist:
-                if w.isSelected() and w.getName() == "RadarBoat":
-                    radarboatselected = True
-                elif w.isSelected() and w.getName() != "RadarBoat":
-                    radarboatselected = False                
-
 
             ## Events only matter if its the clients turn
             if turn:
@@ -916,20 +620,19 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                 ##  QUITTING
                 buttonExit.draw(screen)
 
-                if 'click' in buttonExit.handleEvent(event) and (turnType == '' or turnType == 'position' or turnType == 'reef'):
+                if 'click' in buttonExit.handleEvent(event) and (turnType == '' or turnType == 'position'):
                     print 'quit'
                     if offline:
                         sys.exit();
                     else:
-                        gameOver = True
                         clientsocket.send("LoseGame")
-
-
+                        clientsocket.send("WinGame")
 
                 ## MOVING
 
                 if turnType == "move":
                     if event.type == pygame.MOUSEMOTION:
+                        # game.getBoard().animate(screen,(pygame.time.get_ticks()/500)%2)
 
                         for ship in shiplist:
                             if ship.isSelected():
@@ -959,28 +662,8 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                                         drawShip(screen, ship, x, y, 0, game,screen)
              
                     elif event.type == pygame.MOUSEBUTTONUP: 
-                        print "in"
                         for ship in shiplist:
                             if ship.isSelected():
-                                i, j = event.pos
-                                i = (i - d) / 21
-                                j = (j - 10) / 21
-                                for x,y in ship.getPositionList():            
-                                    if (i == (x-1) and ship.getOrientation() == "E"): # Ship is moving backwards            
-                                        backwards = True            
-                                        break           
-                                    elif (i == (x+1) and ship.getOrientation() == "W"):         
-                                        backwards = True            
-                                        break           
-                                    elif (j == (y+1) and ship.getOrientation() == "N"):         
-                                        backwards = True            
-                                        break           
-                                    elif (j == (y-1) and ship.getOrientation() == "S"):         
-                                        backwards = True            
-                                        break           
-                                    else:           
-                                        backwards = False
-
                                 if moveValid:
                                     x, y = event.pos
                                     x = (x - d) / 21
@@ -991,15 +674,15 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                                         if x >= (ship.getSize()-1) and x <= 29 and y >= 0 and y <= 29:
                                             if VISIBLE:
                                                 #print "move"
-                                                game.moveShip(x, y, True);
+                                                game.moveShip(x, y, True)
+                                                
                                                 if (armKamikaze):
                                                     ship.setSelected(True)
                                                     game.detonateKamikaze()
-
+                                                    
                                                 if not offline:
-                                                    clientsocket.send('Move:'+str(shiplist.index(ship))+':'+str(x)+':'+str(y)+':True:'+str(armKamikaze))
+                                                    clientsocket.send('Move:'+str(shiplist.index(ship))+':'+str(x)+':'+str(y)+':True')
                                                     turn = False
-                                                    game.setTurn(False)
                                             else:
                                                 game.moveShip(x, y, False)
                                                 print "COLLISION"
@@ -1007,15 +690,13 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
 
                                                 string =  'collision at '+ str(x) +str(y)
                                                 notifier = FONT.render(string, 1, (255,255,255))
-                                                # screen.blit(notifier, (200, WINDOWHEIGHT - 100))
-                                                
-                                                updateBoard(game.getBoard(),screen, turn)
+                                                screen.blit(notifier, (200, WINDOWHEIGHT - 100))
+                                                updateBoard(game.getBoard(),screen)
 
                                                 print "CO",colx,coly
                                                 if not offline:
-                                                    clientsocket.send('Move:'+str(shiplist.index(ship))+':'+str(colx)+':'+str(coly)+':False:False')
+                                                    clientsocket.send('Move:'+str(shiplist.index(ship))+':'+str(colx)+':'+str(coly)+':False')
                                                     turn = False
-                                                    game.setTurn(False)
                                     
                                     elif ship.getOrientation() == "W":
                                         if x <= 29 - ship.getSize() and x >= 0 and y >= 0 and y <= 29:
@@ -1023,9 +704,8 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                                                 #print "move"
                                                 game.moveShip(x, y, True);
                                                 if not offline:
-                                                    clientsocket.send('Move:'+str(shiplist.index(ship))+':'+str(x)+':'+str(y)+':True:False')
+                                                    clientsocket.send('Move:'+str(shiplist.index(ship))+':'+str(x)+':'+str(y)+':True')
                                                     turn = False
-                                                    game.setTurn(False)
                                             else:
                                                 print "COLLISION"
 
@@ -1033,26 +713,22 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                                                 string =  'collision at '+ str(x) +str(y)
                                                 notifier = FONT.render(string, 1, (255,255,255))
                                                 screen.blit(notifier, (200, WINDOWHEIGHT - 100))
-                                                
-
-                                                updateBoard(game.getBoard(),screen, turn)
+                                                updateBoard(game.getBoard(),screen)
 
                                                 print "CO",colx,coly
                                                 if not offline:
-                                                    clientsocket.send('Move:'+str(shiplist.index(ship))+':'+str(colx)+':'+str(coly)+':False:False')
+                                                    clientsocket.send('Move:'+str(shiplist.index(ship))+':'+str(colx)+':'+str(coly)+':False')
                                                     turn = False
-                                                    game.setTurn(False)
                                     elif ship.getOrientation() == "S":
                                         back_postion = ship.getPositionList()[-1]
             
-                                        if x >= 0 and x <= 29 and y >= back_postion[1] and y <= 29:
+                                        if x >= 0 and x <= 29 and y > back_postion[1] and y <= 29:
                                             if VISIBLE:
                                                 #print "move"
                                                 game.moveShip(x, y, True);
                                                 if not offline:
-                                                    clientsocket.send('Move:'+str(shiplist.index(ship))+':'+str(x)+':'+str(y)+':True:False')
+                                                    clientsocket.send('Move:'+str(shiplist.index(ship))+':'+str(x)+':'+str(y)+':True')
                                                     turn = False
-                                                    game.setTurn(False)
                                             else:
                                                 print "COLLISION"
 
@@ -1060,13 +736,11 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                                                 string =  'collision at '+ str(x) +str(y)
                                                 notifier = FONT.render(string, 1, (255,255,255))
                                                 screen.blit(notifier, (200, WINDOWHEIGHT - 100))
-                                                
-                                                updateBoard(game.getBoard(),screen, turn)
+                                                updateBoard(game.getBoard(),screen)
 
                                                 if not offline:
-                                                    clientsocket.send('Move:'+str(shiplist.index(ship))+':'+str(colx)+':'+str(coly)+':False:False')
+                                                    clientsocket.send('Move:'+str(shiplist.index(ship))+':'+str(colx)+':'+str(coly)+':False')
                                                     turn = False
-                                                    game.setTurn(False)
 
                                     elif ship.getOrientation() == "N":
                                         if x >= 0 and x <= 29 and y >= 0 and y <= 29-ship.getSize():
@@ -1074,9 +748,8 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                                                 #print "move"
                                                 game.moveShip(x, y, True);
                                                 if not offline:
-                                                    clientsocket.send('Move:'+str(shiplist.index(ship))+':'+str(x)+':'+str(y)+':True:False')
+                                                    clientsocket.send('Move:'+str(shiplist.index(ship))+':'+str(x)+':'+str(y)+':True')
                                                     turn = False
-                                                    game.setTurn(False)
 
                                             else:
                                                 game.moveShip(x, y, False)
@@ -1085,20 +758,14 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                                                 string =  'collision at '+ str(x) +str(y)
                                                 notifier = FONT.render(string, 1, (255,255,255))
                                                 screen.blit(notifier, (200, WINDOWHEIGHT - 100))
-                                                
-                                                updateBoard(game.getBoard(),screen, turn)
+                                                updateBoard(game.getBoard(),screen)
 
                                             if not offline:
-                                                clientsocket.send('Move:'+str(shiplist.index(ship))+':'+str(colx)+':'+str(coly)+':False:False')
+                                                clientsocket.send('Move:'+str(shiplist.index(ship))+':'+str(colx)+':'+str(coly)+':False')
                                                 turn = False
-                                                game.setTurn(False)
-                                minehit = checkMineDamage(ship, i, j, False, screen, backwards)
-                                backwards == False
-                                ship.setSelected(False)
-                                global turnType
-                                turnType = ""
-                                screen.fill(GRAY);
+                               
                                 
+
 
                 ## POSITIONING 
 
@@ -1128,7 +795,6 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                                         rotation = rotation - 1
                                         
                                 game.getBoard().paint(screen)
-                                global moveValid
                                 moveValid = False
                                 
                                 if newOrientation == "E":
@@ -1151,11 +817,9 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                         for ship in shiplist:
                             if ship.isSelected():
                                 old = positionRotation
-                                global positionRotation
                                 positionRotation = old + 1
                                 
                                 if positionRotation == 4:
-                                    global positionRotation
                                     positionRotation = 0
 
                                 screen.fill(GRAY);
@@ -1175,12 +839,13 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
 
                                     turnType = "position"
                                     positionRotation = 0
+                                    
                                     screen.fill(GRAY);
-
 
                 ##  TURNING
 
                 elif turnType == "turn":
+
                     if event.type == pygame.MOUSEMOTION:
                         for ship in shiplist:
                             if ship.isSelected():            
@@ -1293,13 +958,6 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                     elif event.type == pygame.MOUSEBUTTONUP: 
                         for ship in shiplist:
                             if ship.isSelected():
-                                i, j = event.pos
-                                i = (i - d) / 21
-                                j = (j - 10) / 21
-                                sjop = False    
-                                minehit = checkMineDamage(ship,i,j, True, screen, sjop)
-                                if minehit == 1:            
-                                    moveValid = False 
                                 if moveValid:
                                     x, y = event.pos
                                     x = (x - d) / 21
@@ -1312,7 +970,6 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                                             if not offline:
                                                 clientsocket.send('Turn:'+str(shiplist.index(ship))+':'+str(rot)+':True:True')
                                                 turn = False
-                                                game.setTurn(False)
                                         else:
                                             game.rotate(ship, rot, True, False)
 
@@ -1321,13 +978,11 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                                             string =  'turn collision at '+ str(x) +str(y)
                                             notifier = FONT.render(string, 1, (255,255,255))
                                             screen.blit(notifier, (200, WINDOWHEIGHT - 100))
-                                            
-                                            updateBoard(game.getBoard(),screen, turn)
+                                            updateBoard(game.getBoard(),screen)
 
                                             if not offline:
                                                 clientsocket.send('Turn:'+str(shiplist.index(ship))+':'+str(rot)+':True:False')
                                                 turn = False
-                                                game.setTurn(False)
                                     
                                     elif ship.getTurnRadius() == 2:
 
@@ -1336,7 +991,6 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                                             if not offline:
                                                 clientsocket.send('Turn:'+str(shiplist.index(ship))+':'+str(rot)+':True:True')
                                                 turn = False
-                                                game.setTurn(False)
 
                                         else:
                                             game.rotate(ship, rot, False, False)
@@ -1345,19 +999,13 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                                             string =  'turn collision at '+ str(x) +str(y)
                                             notifier = FONT.render(string, 1, (255,255,255))
                                             screen.blit(notifier, (200, WINDOWHEIGHT - 100))
-                                            
-
-                                            updateBoard(game.getBoard(),screen, turn)
+                                            updateBoard(game.getBoard(),screen)
 
                                             if not offline:
                                                 clientsocket.send('Turn:'+str(shiplist.index(ship))+':'+str(rot)+':True:False')
                                                 turn = False
-                                                checkMineDamage(ship,i,j, True, screen, sjop)
-                                                game.setTurn(False)
-
 
                                 ship.setSelected(False)
-                                global turnType
                                 turnType = ""
                                 screen.fill(GRAY);
 
@@ -1394,18 +1042,15 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                                         resultString = resultString[0]+'at '+str(x)+' '+str(y)
                                         
                                     ship.setSelected(False)
-                                    global turnType
                                     turnType = ""
                                     screen.fill(GRAY);
                                     game.updateRange("cannon", False)
                                     notifier = FONT.render(resultString, 1, (255,255,255))
                                     screen.blit(notifier, (200, WINDOWHEIGHT - 100))
-                                    
-                                    updateBoard(game.getBoard(),screen, turn)
+                                    updateBoard(game.getBoard(),screen)
                                     if not offline:
                                         clientsocket.send("Cannon:"+str(shiplist.index(ship))+':'+str(x)+":"+str(y))
                                         turn = False
-                                        game.setTurn(False)
                                 else:
                                     moveValid = False
                                     turnType = ""
@@ -1449,182 +1094,21 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                                         resultString = resultString[0]+'at '+str(x)+' '+str(y)
                                         
                                     ship.setSelected(False)
-                                    global turnType
                                     turnType = ""
                                     screen.fill(GRAY);
                                     game.updateRange("heavycannon", False)
                                     notifier = FONT.render(resultString, 1, (255,255,255))
-                                    
                                     #print resultString
                                     screen.blit(notifier, (200, WINDOWHEIGHT - 100))
-                                    updateBoard(game.getBoard(),screen, turn)
+                                    updateBoard(game.getBoard(),screen)
                                     if not offline:
                                         clientsocket.send("HCannon:"+str(shiplist.index(ship))+':'+str(x)+":"+str(y))
                                         turn = False
-                                        game.setTurn(False)
                                 else:
                                     moveValid = False
                                     turnType = ""
                                     game.updateRange("",False)
                                     screen.fill(GRAY)
-
-                   # Dropping Mine
-                elif turnType == "mine":
-
-                    if event.type == pygame.MOUSEMOTION:
-                        x, y = event.pos
-                        x = (x - d) / 21
-                        y = (y - 10) / 21
-                        
-                        for ship in shiplist:
-                            # print ship
-                            if ship.isSelected():
-                                print "ship has been selected"
-                                print ship.getName()
-                                if ship.getSubclass() != "MineLayer":
-                                    resultString = "Ship selected cant drop mines..."
-                                    screen.fill(GRAY);
-                                    notifier = FONT.render(resultString, 1, (255,255,255))
-                                    screen.blit(notifier, (200, WINDOWHEIGHT - 100))
-                                    global turnType
-                                    turnType = ""
-
-                                else:
-                                    position = ship.position
-                                    game.getBoard().paint(screen)
-                                    tuple = (x,y)
-                                    if (x,y) in ship.getdroppingRange(position):
-                                        if game.dropMine(x,y) == "Cant drop mine at selected location":
-                                            print "Invalid droppping"
-                                            drawRedWeapon(screen, x, y)
-                                        else:
-                                            drawWeapon(screen, x, y)
-                                            minedDroppingShip = ship
-                                            print "Valid dropping area"
-                                            validDrop = True
-                                            break
-                                    else:
-                                        drawRedWeapon(screen, x, y)
-                                        print "Invalid coordinates"
-                                print ship
-
-                    elif event.type == pygame.MOUSEBUTTONUP:   
-                        #print mineShip.getName()
-                        #objectOnN = game.getBoard().getSquare(x,y).getObjectOn()
-                        #if objectOnN != None:
-                        if(validDrop):
-                            validDrop = False
-                            print minedDroppingShip.getdroppingRange(minedDroppingShip.getPositionList())
-                            print minedDroppingShip.getSubclass()
-
-                            if (x,y) in minedDroppingShip.getdroppingRange(minedDroppingShip.getPositionList()) and minedDroppingShip.getSubclass() == "MineLayer":
-                                tuple = (x,y)
-                                global turnType
-                                turnType = ""
-                                resultString = game.dropMine(x,y)  
-                                screen.fill(GRAY);
-                                notifier = FONT.render(resultString, 1, (255,255,255))
-                                screen.blit(notifier, (200, WINDOWHEIGHT - 100))
-                                mine = Mine(1, 0, 0, tuple)    # Create mine object
-                                result = ship.mineDropped(minedDroppingShip)
-                                print result
-                                if(result == 0):
-                                    game.dropMineOnBoard(mine, tuple)
-                                    addMineList(tuple)
-                                    ship.setSelected(False)
-                                    if not offline:
-                                        clientsocket.send("MineDrop:"+str(x)+':'+str(y))
-                                        turn = False
-                                        game.setTurn(False)
-
-                                else:
-                                    resultString = "Can't drop Mine.  The boat is out of Mines!" 
-                                    screen.fill(GRAY);
-                                    notifier = FONT.render(resultString, 1, (255,255,255))
-                                    screen.blit(notifier, (200, WINDOWHEIGHT - 100))
-                                    global turnType
-                                    turnType = ""
-
-                            else:
-                                resultString = "Can't drop mine in selected location" 
-                                screen.fill(GRAY);
-                                notifier = FONT.render(resultString, 1, (255,255,255))
-                                screen.blit(notifier, (200, WINDOWHEIGHT - 100))
-                                global turnType
-                                turnType = ""
-                        else:
-                            resultString = "Can't drop mine in selected location" 
-                            screen.fill(GRAY);
-                            notifier = FONT.render(resultString, 1, (255,255,255))
-                            screen.blit(notifier, (200, WINDOWHEIGHT - 100))
-                            global turnType
-                            turnType = ""
-
-                
-
-                # Picking up Mine
-                elif turnType == "minePickUp":                 
-                    if event.type == pygame.MOUSEMOTION:
-                        x, y = event.pos
-                        x = (x - d) / 21
-                        y = (y - 10) / 21
-                        
-                        for ship in shiplist:
-                            if ship.isSelected():
-                                if ship.getSubclass() != "MineLayer":
-                                    resultString = "Selected boat can't pick up mines" 
-                                    screen.fill(GRAY);
-                                    notifier = FONT.render(resultString, 1, (255,255,255))
-                                    screen.blit(notifier, (200, WINDOWHEIGHT - 100))
-                                    global turnType
-                                    turnType = ""
-                                else:
-                                    newBoatForPickUp = ship
-                                    position = newBoatForPickUp.position
-                                    game.getBoard().paint(screen)
-                                    tuple = (x,y)
-                                    if (x,y) in newBoatForPickUp.getdroppingRange(position):
-                                        if game.PickUpMine(x,y) == 1:        
-                                            drawRedWeapon(screen, x, y)
-                                            print "Invalid pick up area.."
-                                        else:
-                                            drawYellowWeapon(screen, x, y)
-                                            print "Valid pick up area"
-
-                                    else:
-                                        drawRedWeapon(screen, x, y)
-                                        print "Invalid coordinates"
-                    
-                    elif event.type == pygame.MOUSEBUTTONUP: 
-                        if (x,y) in newBoatForPickUp.getdroppingRange(position):
-                            result = game.PickUpMine(x,y)
-                            print "HERE IS RESULT"
-                            print x,y
-                            if(result == 0):
-                                if newBoatForPickUp.getSubclass() == "MineLayer":
-                                    print "Mine Count update:="
-                                    removeMineList(x,y)
-                                    game.removeMine(x, y)
-                                    ship.minePickedUp(newBoatForPickUp)
-                                    print newBoatForPickUp.getMineCount()
-                                    resultString = "Mine has been successfully picked up!" 
-                                    screen.fill(GRAY);
-                                    notifier = FONT.render(resultString, 1, (255,255,255))
-                                    screen.blit(notifier, (200, WINDOWHEIGHT - 100))
-                                    global turnType
-                                    turnType = ""
-                                    ship.setSelected(False)
-                                    if not offline:
-                                        clientsocket.send("MinePick:"+str(x)+':'+str(y))
-                                        turn = False
-                                        game.setTurn(False)
-                        else:
-                            resultString = "Mine pick up unseuccessful" 
-                            screen.fill(GRAY);
-                            notifier = FONT.render(resultString, 1, (255,255,255))
-                            screen.blit(notifier, (200, WINDOWHEIGHT - 100))
-                            global turnType
-                            turnType = "" 
 
                 ## FIRING TORPEDO
 
@@ -1651,7 +1135,6 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
 
                                 if moveValid and x>=0 and x<=29 and y>=0 and y<=29:
                                     resultString = game.fireTorpedo(x,y)
-                                    print "RESULT STRING ",resultString
 
                                     resultString = resultString.split(':')
 
@@ -1666,103 +1149,23 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                                     screen.fill(GRAY);
                                     game.updateRange("torpedo", False)
                                     notifier = FONT.render(resultString, 1, (255,255,255))
-                                    
                                     screen.blit(notifier, (200, WINDOWHEIGHT - 100))
                                     
                                     if not offline:
                                         clientsocket.send("Torpedo:"+str(shiplist.index(ship))+':'+str(x)+':'+str(y))                                   
                                         turn = False
-                                        game.setTurn(False)
                                 else:
                                     moveValid = False
                                     turnType = ""
                                     game.updateRange("",False)
                                     screen.fill(GRAY)
-                elif turnType == "reefButton":
-                    corallist = []
-                    game.randomizeReef(corallist)
-                    game.setCoral(corallist)
-                    print corallist                    
-                    print(len(corallist))
-                    turnType = "reef"
-
-                    screen.fill(GRAY);
-                    updateBoard(game.getBoard(),screen,turn)
-
-                elif turnType == "request":
-                    screen.fill(GRAY)
-                    screen.blit(positiontext, (200, WINDOWHEIGHT - 100))
-                    buttonExit.draw(screen)
-                    buttonPositionShips.draw(screen)
-                    # turnType = "position"
-                    updateBoard(game.getBoard(),screen,turn)
-
-                    print ("SENT CORAL "+ str(game.getCoral())) + str(len(game.getCoral()))
-
-                    if not offline:
-                        clientsocket.send('ReefRequest:'+str(game.getCoral()))
-                        turnType = "waitForReefResponse"
-                    else:
-                        turnType = "position"
-                        acceptreef = True
-
-                elif turnType == "repairBoat":                  
-                    
-                    if game.getCurrentPlayer().getBase().isSelected() == True:
-                        for ship in shiplist:
-                            if ship.isSelected():
-                                game.repairShip(ship)
-                                print ship.getHealth()
-                                
-                                turnType = ""
-                                game.getCurrentPlayer().getBase().setSelected(False)
-                                ship.setSelected(False)
-                                screen.fill(GRAY);
-                                turn = False
-                                game.setTurn(False)
-                                if not offline:
-                                    clientsocket.send("Repair:"+str(shiplist.index(ship)))
-                                 
                 
-                # clicked to turn radar on
-                elif turnType == "radaron":
-                    global longRadar
-                    longRadar = True
-                    for s in shiplist:
-                        if (s.isSelected() and positioned and s.getSubclass() == "RadarBoat"):
-                            screen.fill(GRAY)  # Put this here temporarily to see the output
-                            if longRadar == True: 
-                                for o in shipOptions2:
-                                    o.draw(screen)                     
-                    game.updateVisibilityRadar() 
-                    global turnType
-                    turnType = ""
-                    screen.fill(GRAY);
-
-                #?
-                # clicked to turn radar off
-                elif turnType == "radaroff":
-                    global longRadar
-                    longRadar = False
-                    for s in shiplist:
-                        if (s.isSelected() and positioned and s.getSubclass() == "RadarBoat"):
-                            screen.fill(GRAY)  # Put this here temporarily to see the output
-                            if longRadar == False:
-                                for o in shipOptionsRadar:
-                                    o.draw(screen)                                                        
-                    game.updateVisibility() 
-                    global turnType
-                    turnType = ""
-                    screen.fill(GRAY);       
-
-               
                 #######################
                 ## SETTING TURN TYPES##
                 #######################    
 
 
                 elif 'click' in buttonPositionShips.handleEvent(event) and turnType == "position":
-                    global positioned
                     positioned = True
                     string = 'Position:'
                     i = 0
@@ -1776,121 +1179,56 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                     #print string
                     if not offline: 
                         clientsocket.send(string)
-
-                        
                     if Player1 and op_positioned == True :
                         turn = True
-                        game.setTurn(True)
-                    
                     else:
                         turn = False
-                        game.setTurn(False)
 
                     turnType = ""
 
 
                     screen.fill(GRAY);                                
 
-                elif 'click' in buttonSave.handleEvent(event):
-                    print 'save'
-                    savefile = textbox.start(screen,"Enter Filename")
-                    if Player1:
-                        pickle.dump(game,open('savedGames/'+savefile+".bsh","wb"))
-                    else:
-                        pickle.dump(game,open('savedGames2/'+savefile+".bsh","wb"))
-
-                    screen.fill(GRAY)
-                    updateBoard(game.getBoard(),screen,turn)
-
-                    clientsocket.send("Save:"+savefile)
-
-
-                elif 'click' in buttonDropMine.handleEvent(event) and turnType == '' and isSelected and not radarboatselected and not isKamikaze:
-                    turnType = "mine" 
-
-                elif 'click' in buttonPickUpMine.handleEvent(event) and turnType == '' and isSelected:
-                    turnType = 'minePickUp'
-
-        
-             
-                elif 'click' in buttonMove.handleEvent(event) and turnType == '' and isSelected and not radarboatselected:
-                    turnType = "move"
-                elif 'click' in buttonMove2.handleEvent(event) and turnType == '' and isSelected and not longRadar:
+                elif 'click' in buttonMove.handleEvent(event) and turnType == '' and isSelected:
+                    print "clicked move"
                     turnType = "move"
 
                 elif 'click' in kbuttonFire.handleEvent(event) and turnType == '' and isSelected and isKamikaze:
                     print "KAMIKAZE ARMED"
                     armKamikaze = True
                     turnType = "move"
-
+                
                 elif 'click' in buttonFire.handleEvent(event) and turnType == '' and isSelected:
+                    print "clicked fire"
                     turnType = "fire"
+                
+                
+                    
 
-                elif 'click' in buttonCannon.handleEvent(event) and turnType == 'fire' and isSelected:
+                elif 'click' in buttonCannon.handleEvent(event) and turnType == 'fire' and cannon and isSelected:
                     turnType = "cannon"
-
                     game.updateRange("cannon", True)
-                    updateBoard(game.getBoard(),screen, turn)
+                    updateBoard(game.getBoard(),screen)
 
 
-                elif 'click' in buttonHeavyCannon.handleEvent(event) and turnType == 'fire' and isSelected:
-                    print 'click in heavy'
+                elif 'click' in buttonHeavyCannon.handleEvent(event) and turnType == 'fire' and hcannon and isSelected:
                     turnType = "heavycannon"
                     game.updateRange("heavycannon", True)
-                    updateBoard(game.getBoard(),screen, turn)
+                    updateBoard(game.getBoard(),screen)
                     #print turnType
 
-                elif 'click' in buttonTorpedo.handleEvent(event) and turnType == 'fire' and isSelected:
+                elif 'click' in buttonTorpedo.handleEvent(event) and turnType == 'fire'and torpedo and isSelected:
                     turnType = "torpedo"
                     game.updateRange("torpedo", True)
-                    updateBoard(game.getBoard(),screen, turn)                    
+                    updateBoard(game.getBoard(),screen)                    
                         
                 elif 'click' in buttonTurn.handleEvent(event) and turnType == '' and isSelected:
                     turnType = "turn"
                     x,y = event.pos
                     x = (x - d) / 21
                     y = (y - 10) / 21
-               
-                elif 'click' in buttonRepair.handleEvent(event) and turnType == 'baseRepair':
-                    turnType = "repairBoat"
-
-
-
-                elif 'click' in buttonRequestReef.handleEvent(event) and acceptreef == False and turnType == "reef" and Player1:
-                    turnType = "request"
-                    updateBoard(game.getBoard(),screen,turn) 
-
-                elif 'click' in buttonReef.handleEvent(event) and acceptreef == False and turnType == "reef" and Player1:
-                    turnType = "reefButton"
-                    updateBoard(game.getBoard(),screen,turn)
-
-                elif 'click' in buttonAcceptReef.handleEvent(event) and acceptreef == False and turnType == "reef" and not Player1 and reefReq:
-                    clientsocket.send('ReefAccept')
-                    turnType = "accept"
-                    reefReq = False
-                    updateBoard(game.getBoard(),screen,turn)
-
-                elif 'click' in buttonRejectReef.handleEvent(event) and acceptreef == False and turnType == "reef" and not Player1 and reefReq:
-                    clientsocket.send('ReefReject')
-                    reefReq = False
-                    updateBoard(game.getBoard(),screen,turn)
-
-                elif 'click' in buttonLongRadar.handleEvent(event) and radarboatselected and turnType == "" and isSelected:
-                    for ship in shiplist:
-                        if ship.getSubclass() == "RadarBoat" and ship.getLongRadar() == True:
-                            turnType = "radaroff"
-                            ship.setLongRadar(False)
-                            global longRadar
-                            longRadar = False
-                            
-                        elif ship.getSubclass() == "RadarBoat" and ship.getLongRadar() == False:
-                            turnType = "radaron"
-                            ship.setLongRadar(True)
-                            global longRadar
-                            longRadar = True 
-
-
-                elif event.type == pygame.MOUSEBUTTONUP and turnType != "reef" and turnType != "reefButton" and turnType != "waitForReefResponse":
+                                
+                elif event.type == pygame.MOUSEBUTTONUP:
                     x, y = event.pos
                     x = (x - d) / 21
                     y = (y - 10) / 21
@@ -1921,89 +1259,17 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                     if total == 0 and positioned:
                         screen.fill(GRAY);
                         for sh in shiplist:
-                            sh.setSelected(False)
+                            sh.setSelected(False) 
+                                
+                if turnType != "move" and turnType != "positionActive" and turnType != "turn" and turnType != "cannon" and turnType != "heavycannon" and turnType != "torpedo":
 
-                    if (x >= 0 and x <= 29 and y >= 0 and y <= 29):
-                        obj = game.getBoard().getSquare(x,y).getObjectOn()
-                        if obj == None:
-                            turnType = ''
-                            for z in shiplist:
-	                        	z.setSelected(False)
-                 			for b in baselist:
-                 				x1 = b[0]
-                 				x2 = b[1]
-                 				game.getBoard().getSquare(x1,x2).getObjectOn().setSelected(False)
-                        
-                        elif obj.getClassName() == "Base" and turnType != "position" and (x,y) not in op_baselist:
-                            obj.setSelected(True)
-                            turnType = "baseRepair"
-                            
-                    print turnType
-                if turnType != "move" and turnType != "positionActive" and turnType != "turn" and turnType != "cannon" and turnType != "mine" and turnType !="minePickUp" and turnType != "heavycannon" and turnType != "torpedo" and turnType != "radaron" and turnType != "radaroff":
-
-                    updateBoard(game.getBoard(),screen, turn)
+                    updateBoard(game.getBoard(),screen)
                   
-def updateBoard(gameBoard,screen, turn):
-    shiplist = game.getCurrentPlayer().getShipList()
-    op_shiplist = game.getOpponent().getShipList()
+def updateBoard(gameBoard,screen):
+    #border
     drawStatPanel(screen, shiplist, op_shiplist)
     drawSelectedPanel(screen, shiplist)
     drawMessagePanel(screen, turn)
-
-    if (turnType == "fire"):
-        # screen.fill(GRAY);
-        buttons = []
-        for ship in shiplist:
-            if ship.isSelected():
-                cannon = False
-                torpedo = False
-                hcannon = False    
-                weaponList = ship.getWeaponList()
-                
-                for weapon in weaponList:
-                    if weapon.getName() == "Cannon":
-                        buttons.append(buttonCannon)
-                        cannon = True
-                    if weapon.getName() == "HeavyCannon":
-                        buttons.append(buttonHeavyCannon)
-                        hcannon = True
-                    if weapon.getName() == "Torpedo":
-                        buttons.append(buttonTorpedo)
-                        torpedo = True
-        for button in buttons:
-            button.draw(screen)
-    else:
-
-        for s in shiplist:
-            if (s.isSelected() and positioned and s.getSubclass() == 'Kamikaze'):
-                # drawSelectedPanel(screen,shiplist)
-                for o in kshipOptions:
-                    o.draw(screen)
-            elif (s.isSelected() and positioned and s.getSubclass() == 'MineLayer'):
-                # drawSelectedPanel(screen,shiplist)
-                for o in mshipOptions:
-                    o.draw(screen)
-            elif (s.isSelected() and positioned and s.getSubclass() == "RadarBoat"):
-                # drawSelectedPanel(screen,shiplist)
-                if longRadar == True:
-                    for o in shipOptions2:
-                        o.draw(screen)
-                else:                
-                    for o in shipOptionsRadar:
-                        o.draw(screen)   
-
-            elif (s.isSelected()):
-                drawSelectedPanel(screen,shiplist)
-                for o in shipOptions:
-                    o.draw(screen)
-    if not positioned:
-        screen.blit(positiontext, (850, 40))
-        screen.blit(positiontext1, (780, 60))
-        buttonPositionShips.draw(screen)
-
-
-
-
     pygame.draw.rect(screen, WHITE, [9,5,641,640])
     pygame.draw.rect(screen, BLACK, [14,9,631,631])
     gameBoard.paint(screen)
@@ -2013,268 +1279,18 @@ def drawWeapon(surface, x, y):
     c = (27, 201, 18) #green
     pygame.draw.ellipse(surface, c, [x*20 + x*1 + d, y*20 + y*1 + 10, 20, 20], 0)
     pygame.display.update()
-def drawRedWeapon(surface, x, y):
-    c = (250, 0, 0) # Red
-    pygame.draw.ellipse(surface, c, [x*20 + x*1 + d, y*20 + y*1 + 10, 20, 20], 0)
-    pygame.display.update()
-
-def drawYellowWeapon(surface, x, y):
-    c = (255, 255, 0) # Yellow
-    pygame.draw.ellipse(surface, c, [x*20 + x*1 + d, y*20 + y*1 + 10, 20, 20], 0)
-    pygame.display.update()    
-
-def addMineList(position):
-    print "ADDING"
-    x = position[0]
-    y = position[1]
-    tuple = (x,y)
-    mineList.append(tuple)
-
-def removeMineList(x,y):
-    tuple = (x,y)
-    mineList.remove(tuple)
-
-def checkMineDamage(ship,x,y, isTurning, screen, backwards):
-    print "new ship position = "
-    print ship.getPositionList()
-    indigo = False
-    orientation = ship.getOrientation()
-    shipList = ship.getPositionList()
-    
-    #print ship.getOrientation()
-    #print ship.getPositionList()
-    #print isTurning
-
-    if isTurning:
-        print "turn"
-        for i, j in mineList:
-            print "mine"
-            print i,j
-            for s,t in ship.getPositionList():
-                if((i==s and j==t) or ((i+1==s) and j==t) or ((i-1==s) and j==t) or (i==s and (j+1)==t) or (i==s and (j-1)==t)):   
-                    game.mineDamagedShip(ship, s, t, False)
-                    moveValid = False
-                    removeMineList(i,j)
-                    game.removeMine(i,j)
-                    indigo = True
-                    break
-
-    else:    
-        if orientation == "E":
-            if backwards == True:
-                for i, j in mineList:
-                    print "mine"
-                    print i,j
-                    for s,t in ship.getPositionList():
-                        if((i==s and j==t) or ((i+1==s) and j==t) or ((i-1==s) and j==t) or (i==s and (j+1)==t) or (i==s and (j-1)==t)):   
-                            game.mineDamagedShip(ship, s, t, True)
-                            moveValid = True
-                            removeMineList(i,j)
-                            game.removeMine(i,j)
-                            indigo = True
-                            break
-                if(indigo == False):
-                    print "CHECKING"
-                    for i, j in mineList:
-                        print i,j
-                        for s,t in ship.getPositionList():
-                            print "here iti s:"
-                            print (s+1), i 
-
-
-                            if((i==s and j==t) or ((i+1==s) and j==t) or ((i-1==s) and j==t) or (i==s and (j+1)==t) or (i==s and (j-1)==t)):
-                                print "eqeual N E S W"
-                                print i,j
-                                t = game.mineDamagedShip(ship, s, t, True)
-                                if t==1:
-                                    ship.destroyShip(self.gameBoard)
-                                    self.updateVisibility()
-                                    self.updateVisibilityRadar()
-                                moveValid = True
-                                removeMineList(i,j)
-                                game.removeMine(i, j)
-                                indigo = True
-                                break
-            elif backwards == False:
-                for i, j in mineList:
-                    print "mien sluts"
-                    print i,j
-                    for s,t in ship.getPositionList():
-                        if( (i==s and j==t) or ((i+1==s) and j==t) or ((i-1==s) and j==t) or (i==s and (j+1)==t) or (i==s and (j-1)==t)):
-                            print "eqeual hit"
-                            print s,t
-                            game.mineDamagedShip(ship, s, t, False)
-                            moveValid = True
-                            removeMineList(i,j)
-                            game.removeMine(i, j)
-                            indigo = True
-                            break
-
-        if orientation == "W":
-            if backwards == True:
-                for i, j in mineList:
-                    print "mine"
-                    print i,j
-                    for s,t in ship.getPositionList():
-                        if((i==s and j==t) or ((i+1==s) and j==t) or ((i-1==s) and j==t) or (i==s and (j+1)==t) or (i==s and (j-1)==t)):   
-                            game.mineDamagedShip(ship, s, t, True)
-                            moveValid = True
-                            removeMineList(i,j)
-                            game.removeMine(i,j)
-                            indigo = True
-                            break
-                if(indigo == False):
-                    print "CHECKING"
-                    for i, j in mineList:
-                        print i,j
-                        for s,t in ship.getPositionList():
-                            print "here iti s:"
-                            print (s+1), i 
-
-
-                            if((i==s and j==t) or ((i+1==s) and j==t) or ((i-1==s) and j==t) or (i==s and (j+1)==t) or (i==s and (j-1)==t)):
-                                print "eqeual N E S W"
-                                print i,j
-                                t = game.mineDamagedShip(ship, s, t, True)
-                                if t==1:
-                                    ship.destroyShip(self.gameBoard)
-                                    self.updateVisibility()
-                                    self.updateVisibilityRadar()
-                                moveValid = True
-                                removeMineList(i,j)
-                                game.removeMine(i, j)
-                                indigo = True
-                                break
-            elif backwards == False:
-                for i, j in mineList:
-                    for s,t in ship.getPositionList():
-                        if( (i==s and j==t) or ((i+1==s) and j==t) or ((i-1==s) and j==t) or (i==s and (j+1)==t) or (i==s and (j-1)==t)):
-                            print "eqeual hit"
-                            print s,t
-                            game.mineDamagedShip(ship, s, t, False)
-                            moveValid = True
-                            removeMineList(i,j)
-                            game.removeMine(i, j)
-                            indigo = True
-                            break
-
-        if orientation == "N":
-            if backwards == True:
-                for i, j in mineList:
-                    print "mine"
-                    print i,j
-                    for s,t in ship.getPositionList():
-                        if((i==s and j==t) or ((i+1==s) and j==t) or ((i-1==s) and j==t) or (i==s and (j+1)==t) or (i==s and (j-1)==t)):   
-                            game.mineDamagedShip(ship, s, t, True)
-                            moveValid = True
-                            removeMineList(i,j)
-                            game.removeMine(i,j)
-                            indigo = True
-                            break
-                if(indigo == False):
-                    print "CHECKING"
-                    for i, j in mineList:
-                        print i,j
-                        for s,t in ship.getPositionList():
-                            print "here iti s:"
-                            print (s+1), i 
-
-
-                            if((i==s and j==t) or ((i+1==s) and j==t) or ((i-1==s) and j==t) or (i==s and (j+1)==t) or (i==s and (j-1)==t)):
-                                print "eqeual N E S W"
-                                print i,j
-                                t = game.mineDamagedShip(ship, s, t, True)
-                                if t==1:
-                                    ship.destroyShip(self.gameBoard)
-                                    self.updateVisibility()
-                                    self.updateVisibilityRadar()
-                                moveValid = True
-                                removeMineList(i,j)
-                                game.removeMine(i, j)
-                                indigo = True
-                                break
-            elif backwards == False:
-                for i, j in mineList:
-                    for s,t in ship.getPositionList():
-                        if( (i==s and j==t) or ((i+1==s) and j==t) or ((i-1==s) and j==t) or (i==s and (j+1)==t) or (i==s and (j-1)==t)):
-                            print "eqeual hit"
-                            print s,t
-                            game.mineDamagedShip(ship, s, t, False)
-                            moveValid = True
-                            removeMineList(i,j)
-                            game.removeMine(i, j)
-                            indigo = True
-                            break
-        if orientation == "S":
-            if backwards == True:
-                for i, j in mineList:
-                    print "mine"
-                    print i,j
-                    for s,t in ship.getPositionList():
-                        if((i==s and j==t) or ((i+1==s) and j==t) or ((i-1==s) and j==t) or (i==s and (j+1)==t) or (i==s and (j-1)==t)):   
-                            game.mineDamagedShip(ship, s, t, True)
-                            moveValid = True
-                            removeMineList(i,j)
-                            game.removeMine(i,j)
-                            indigo = True
-                            break
-                if(indigo == False):
-                    print "CHECKING"
-                    for i, j in mineList:
-                        print i,j
-                        for s,t in ship.getPositionList():
-                            print "here iti s:"
-                            print (s+1), i 
-
-
-                            if((i==s and j==t) or ((i+1==s) and j==t) or ((i-1==s) and j==t) or (i==s and (j+1)==t) or (i==s and (j-1)==t)):
-                                print "eqeual N E S W"
-                                print i,j
-                                t = game.mineDamagedShip(ship, s, t, True)
-                                if t==1:
-                                    ship.destroyShip(self.gameBoard)
-                                    self.updateVisibility()
-                                    self.updateVisibilityRadar()
-                                moveValid = True
-                                removeMineList(i,j)
-                                game.removeMine(i, j)
-                                indigo = True
-                                break
-            elif backwards == False:
-                for i, j in mineList:
-                    for s,t in ship.getPositionList():
-                        if( (i==s and j==t) or ((i+1==s) and j==t) or ((i-1==s) and j==t) or (i==s and (j+1)==t) or (i==s and (j-1)==t)):
-                            print "eqeual hit"
-                            print s,t
-                            game.mineDamagedShip(ship, s, t, False)
-                            moveValid = True
-                            removeMineList(i,j)
-                            game.removeMine(i, j)
-                            indigo = True
-                            break
-
-    if indigo:
-        backwards == False
-        return 1
-    else:
-        backwards == False
-        return 0
     
 global pList
 def drawShip(surface, ship, x, y, rotation, game,screen):
     global VISIBLE
     VISIBLE = True
     r = rotation
-
-    # game.getBoard().animate(screen,(pygame.time.get_ticks()/500)%2)
-
+    
     global pList
     pList = ship.getPositionList()
     (x1, y1) = pList[0]
     (x2,y2) = pList[-1]
-
-
-
+    
     global moveValid
     moveValid = True
     board = game.getBoard()
@@ -2291,15 +1307,11 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
             if (board.getSquare(x,y).getObjectOn() != None ):
                 if (board.getSquare(x,y).getObjectOn() == ship):
                     moveValid = True;
-                elif(board.getSquare(x,y).getObjectOn().getClassName() == "Mine"):  
-                    moveValid = True;           
-                    VISIBLE = True
                 else:
                     moveValid = False;
         else:
             moveValid = False;
-
-
+            
     
     newOrientation = ship.getOrientation()
     turning = False
@@ -2328,7 +1340,7 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
             rotation = rotation - 1
     #print newOrientation
     
-  
+    
     
     if (newOrientation == "E"):
         if turning:
@@ -2348,10 +1360,6 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
                                 VISIBLE = True
                                 moveValid = False
                                 break
-                            elif (board.getSquare(i,j).getObjectOn().getClassName() == "Mine"): 
-                                VISIBLE = True          
-                                moveValid = True            
-                                break
                             elif not board.getSquare(i,j).isVisible():
                                 VISIBLE = False
                                 colx = i
@@ -2363,16 +1371,7 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
                                 moveValid = False
                                 break
                 else:
-                    go = False
-                    for (i,j) in ship.getTurnZone(r):
-                        if (board.getSquare(i,j).getObjectOn() != None ):
-                            if (board.getSquare(i,j).getObjectOn().getClassName() == "Mine"):
-                                VISIBLE = True
-                                moveValid = True
-                                go = True
-                                break
-                    if go == False:          
-                        moveValid = False           
+                    moveValid = False
             
             # if turn radius = 180
             elif ship.getTurnRadius() == 2:
@@ -2404,9 +1403,6 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
                                 VISIBLE = False
                                 colx = i
                                 coly = y
-                            if(board.getSquare(i,y).getObjectOn == MineLayer):  
-                                VISIBLE = True          
-                                moveValid = True
                             else:
                                 colx = i
                                 coly = y
@@ -2414,15 +1410,7 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
                                 break
                         i-=1
                 else:
-                    go = False  
-                    for (i,j) in ship.getTurnZone(r):           
-                        if (board.getSquare(i,j).getObjectOn() != None ):           
-                            if (board.getSquare(i,j).getObjectOn().getClassName() == "Mine"):           
-                                VISIBLE = True          
-                                moveValid = True            
-                                go = True           
-                    if go == False:         
-                        moveValid = False
+                    moveValid = False
 
                 if (x0 == x1 and y0 == y1):
                     #print "r=",r
@@ -2436,10 +1424,6 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
 
                                 moveValid = False
                                 break
-                            elif(board.getSquare(i,j).getObjectOn().getClassName() == "Mine"):          
-                                VISIBLE = True          
-                                moveValid = True            
-                                break
                             elif not board.getSquare(i,j).isVisible():
                                 VISIBLE = False
                                 colx = i
@@ -2451,21 +1435,13 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
                                 moveValid = False
                                 break
                 else:
-                    go = False  
-                    for (i,j) in ship.getTurnZone(r):           
-                        if (board.getSquare(i,j).getObjectOn() != None ):           
-                            if (board.getSquare(i,j).getObjectOn().getClassName() == "Mine"):           
-                                VISIBLE = True          
-                                moveValid = True            
-                                go = True           
-                    if go == False:
-                        moveValid = False
+                    moveValid = False 
 
                 
             #print moveValid
          
 
-        elif  ( ship.getSubclass() != "Kamikaze" and turnType != "positionActive" and ((x - x1 ) >= -1 and ( x - x1 ) <= ship.getSpeed() and (y - y1) == 0) or ((y - y1) >= -1 and (y - y1) <= 1 and (x - x1) == 0)):
+        elif  (ship.getSubclass() != "Kamikaze" and turnType != "positionActive" and ((x - x1 ) >= -1 and ( x - x1 ) <= ship.getSpeed() and (y - y1) == 0) or ((y - y1) >= -1 and (y - y1) <= 1 and (x - x1) == 0)):
             i = x1
             # check for obstacles in front
             while i <= x:
@@ -2477,10 +1453,7 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
                         VISIBLE = False
                         colx = i
                         coly = y
-                    if (board.getSquare(i,y).getObjectOn().getClassName() == "Mine"):   
-                        VISIBLE = True          
-                        moveValid = True            
-                        break
+
                     else:
                         #TODO
                         colx = i
@@ -2496,21 +1469,15 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
                     if (board.getSquare(x-i,y).getObjectOn() != None):
                         if not board.getSquare(x-i,y).isVisible():
                             VISIBLE = False
-                        if (board.getSquare(x-i,y).getObjectOn().getClassName() == "Mine"): 
-                            VISIBLE = True          
-                            moveValid = True            
-                            break
                         else:
+
                             moveValid = False
                             break
                     i+=1
             #check obstacles behind
             elif x-ship.getSize() <= x2-1 :
                 if (board.getSquare(x-ship.getSize()+1,y).getObjectOn() != None):
-                    if (board.getSquare(x-ship.getSize()+1,y).getObjectOn().getClassName() == "Mine"):  
-                        VISIBLE = True          
-                        moveValid = True            
-                    elif not board.getSquare(x-ship.getSize()+1,y).isVisible():
+                    if not board.getSquare(x-ship.getSize()+1,y).isVisible():
                         VISIBLE = False
                     else:
                         colx = x-ship.getSize()+1
@@ -2524,11 +1491,7 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
                 #print board.getSquare(i,y).getObjectOn()
                 
                 if(board.getSquare(i,y).getObjectOn()!= None):
-                    if (board.getSquare(i,y).getObjectOn().getClassName() == "Mine"):   
-                        VISIBLE = True          
-                        moveValid = True            
-                        break
-                    elif (board.getSquare(i,y).getObjectOn()== ship):
+                    if (board.getSquare(i,y).getObjectOn()== ship):
                         i+=1
                         continue
                     
@@ -2541,11 +1504,7 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
                 #print board.getSquare(i,y).getObjectOn()
                 
                 if(board.getSquare(i,y).getObjectOn()!= None):
-                    if (board.getSquare(i,y).getObjectOn().getClassName() == "Mine"):   
-                        VISIBLE = True          
-                        moveValid = True            
-                        break
-                    elif (board.getSquare(i,y).getObjectOn()== ship):
+                    if (board.getSquare(i,y).getObjectOn()== ship):
                         i+=1
                         continue
                     
@@ -2553,17 +1512,8 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
                     break
                 i+=1
                 
-                
         elif (turnType == "positionActive" and ship.getSubclass() == 'Kamikaze'):
-            bool99 = False  
-            for (i,j) in ship.getTurnZone(r):           
-                if (board.getSquare(i,j).getObjectOn() != None ):           
-                    if (board.getSquare(i,j).getObjectOn().getClassName() == "Mine"):           
-                        VISIBLE = True          
-                        moveValid = True            
-                        bool99 = True           
-            if bool99 == False:         
-                moveValid = False 
+            moveValid = False    
         elif ship.getSubclass() != 'Kamikaze':
             moveValid = False
             
@@ -2608,9 +1558,6 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
                                 VISIBLE = True
                                 moveValid = False
                                 break
-                            elif board.getSquare(i,y).getObjectOn().getClassName() == 'Mine':
-                                #game.mineDamagedShip(ship, i, y)
-                                moveValid = True 
                             elif not board.getSquare(i,j).isVisible():
                                 VISIBLE = False
                                 colx = i
@@ -2622,15 +1569,7 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
                                 moveValid = False
                                 break
                 else:
-                    bool3 = False   
-                    for (i,j) in ship.getTurnZone(r):           
-                        if (board.getSquare(i,j).getObjectOn() != None ):           
-                            if (board.getSquare(i,j).getObjectOn().getClassName() == "Mine"):           
-                                VISIBLE = True          
-                                moveValid = True            
-                                bool3 = True            
-                    if bool3 == False:          
-                       moveValid = False
+                    moveValid = False
 
             # if turn radius = 180
             elif ship.getTurnRadius() == 2:
@@ -2662,10 +1601,6 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
                             if(board.getSquare(i,y).getObjectOn() == ship):
                                 i-=1
                                 continue
-                            if (board.getSquare(i,y).getObjectOn().getClassName() == "Mine"): 
-                                VISIBLE = True          
-                                moveValid = True            
-                                break
                             if not board.getSquare(i,y).isVisible():
                                 VISIBLE = False
                                 colx = i
@@ -2690,10 +1625,6 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
                                 moveValid = False
                                 VISIBLE = True
                                 break
-                            elif (board.getSquare(i,j).getObjectOn().getClassName() == "Mine"): 
-                                VISIBLE = True          
-                                moveValid = True            
-                                break
                             elif not board.getSquare(i,j).isVisible():
                                 VISIBLE = False
                                 colx = i
@@ -2704,29 +1635,17 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
                                 moveValid = False
                                 break
                 else:
-                    bool5 = False   
-                    for (i,j) in ship.getTurnZone(r):           
-                       if (board.getSquare(i,j).getObjectOn() != None ):           
-                            if (board.getSquare(i,j).getObjectOn().getClassName() == "Mine"):           
-                                VISIBLE = True          
-                                moveValid = True            
-                                bool5 = True            
-                    if bool5 == False:          
-                        moveValid = False    
+                    moveValid = False    
 
   
 
             if moveValid != False:
                 color = pygame.Color(194, 242, 221) #green
-        elif  ship.getSubclass() != "Kamikaze" and  turnType != "positionActive" and ((x - x1 ) <= 1 and ( x - x1 ) >= -ship.getSpeed() and (y - y1) == 0) or ((y - y1) >= -1 and (y - y1) <= 1 and (x - x1) == 0): 
+        elif  ship.getSubclass() != "Kamikaze" and turnType != "positionActive" and ((x - x1 ) <= 1 and ( x - x1 ) >= -ship.getSpeed() and (y - y1) == 0) or ((y - y1) >= -1 and (y - y1) <= 1 and (x - x1) == 0): 
             i = x
             # check for obsticals
             while i <= x1:
                 if (board.getSquare(i,y).getObjectOn() != None ):
-                    if (board.getSquare(i,y).getObjectOn().getClassName() == "Mine"):   
-                        VISIBLE = True          
-                        moveValid = True            
-                        break
                     if (board.getSquare(i,y).getObjectOn() == ship):
                         i+=1
                         continue
@@ -2747,10 +1666,6 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
                 while i< ship.getSize():
                     if (board.getSquare(x+i,y).getObjectOn() != None):
                         color = pygame.Color(250, 200, 200) #red
-                        if (board.getSquare(x+i,y).getObjectOn().getClassName() == "Mine"): 
-                            VISIBLE = True          
-                            moveValid = True            
-                            break
                         if not board.getSquare(x+i,y).isVisible():
                             VISIBLE = False
                         else:
@@ -2761,10 +1676,7 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
             #check obstacles behind
             elif x+ship.getSize() >= x2+1 :
                 if (board.getSquare(x+ship.getSize()-1,y).getObjectOn() != None):
-                    if board.getSquare(x + ship.getSize()-1, y).getObjectOn().getClassName() == "Mine": 
-                        VISIBLE = True          
-                        moveValid = True
-                    elif not board.getSquare(x+ship.getSize()-1,y).isVisible():
+                    if not board.getSquare(x+ship.getSize()-1,y).isVisible():
                         VISIBLE = False
                         colx = x+ship.getSize()-1
                         coly = y
@@ -2782,11 +1694,7 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
             
             while i >= x:
                 if (board.getSquare(i,y).getObjectOn()!= None):
-                    if (board.getSquare(i,y).getObjectOn().getClassName() == "Mine"):   
-                        VISIBLE = True          
-                        moveValid = True            
-                        break
-                    elif (board.getSquare(i,y).getObjectOn() == ship):
+                    if (board.getSquare(i,y).getObjectOn() == ship):
                         i-=1
                         continue
                     
@@ -2802,11 +1710,7 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
             while i >= x:
                 #print board.getSquare(i,y).getObjectOn()
                 if (board.getSquare(i,y).getObjectOn()!= None):
-                    if (board.getSquare(i,y).getObjectOn().getClassName() == "Mine"):   
-                        VISIBLE = True          
-                        moveValid = True            
-                        break
-                    elif (board.getSquare(i,y).getObjectOn() == ship):
+                    if (board.getSquare(i,y).getObjectOn() == ship):
                         i-=1
                         continue
                     
@@ -2818,15 +1722,7 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
 
                         
         else:
-            bool8 = False   
-            for (i,j) in ship.getTurnZone(r):           
-                if (board.getSquare(i,j).getObjectOn() != None ):           
-                    if (board.getSquare(i,j).getObjectOn().getClassName() == "Mine"):           
-                        VISIBLE = True          
-                        moveValid = True            
-                        bool8 = True            
-            if(bool8 == False):         
-               moveValid = False
+            moveValid = False
         
         if moveValid == True:
             color = pygame.Color(194, 242, 221) #green
@@ -2836,9 +1732,12 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
         
         
         #print "Drawing w", (x,y)
-
-        pygame.draw.polygon(surface, color, [(x*20 + x*1 + d + 19, y*20 + y*1 + 10), (x*20 + x*1 + d + 19, y*20 + y*1 + 29), (x*20 + x*1 + d, y*20 + y*1 + 20)], 0)      
-        x = x + 1
+        if (ship.getSubclass() != "Kamikaze"):
+            pygame.draw.polygon(surface, color, [(x*20 + x*1 + d + 19, y*20 + y*1 + 10), (x*20 + x*1 + d + 19, y*20 + y*1 + 29), (x*20 + x*1 + d, y*20 + y*1 + 20)], 0)      
+            x = x + 1
+        else:
+            pygame.draw.rect(surface, color, [x*20 + x*1 + d, y*20 + y*1 + 10, 20, 20])
+            
         for i in range(ship.getSize() - 1):
             pygame.draw.rect(surface, color, [x*20 + x*1 + d, y*20 + y*1 + 10, 20, 20])
             x = x + 1
@@ -2864,12 +1763,8 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
                             elif (board.getSquare(i,j).getObjectOn().getClassName() == "Coral"):
                                 print 'hit coral'
                                 VISIBLE = True
+
                                 moveValid = False
-                                break
-                            elif (board.getSquare(i,j).getObjectOn().getClassName() == "Mine"): 
-                                print 'hit Mine'            
-                                VISIBLE = True          
-                                moveValid = True            
                                 break
                             elif not board.getSquare(i,j).isVisible():
                                 VISIBLE = False
@@ -2882,15 +1777,7 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
                                 moveValid = False
                                 break
                 else:
-                    go = False  
-                    for (i,j) in ship.getTurnZone(r):           
-                        if (board.getSquare(i,j).getObjectOn() != None):            
-                            if (board.getSquare(i,j).getObjectOn().getClassName() == "Mine"):           
-                                VISIBLE = True          
-                                moveValid = True            
-                                go = True           
-                    if go == False:         
-                        moveValid = False
+                    moveValid = False
             
             # ships that can move 180
 
@@ -2919,11 +1806,7 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
                             if(board.getSquare(x,i).getObjectOn() == ship):
                                 i-=1
                                 continue
-                            elif(board.getSquare(x,i).getObjectOn() == MineLayer):  
-                                VISIBLE = True          
-                                moveValid = True            
-                                break
-                            elif not board.getSquare(i,y).isVisible():
+                            if not board.getSquare(i,y).isVisible():
                                 VISIBLE = False
                                 colx = x
                                 coly = i
@@ -2948,10 +1831,6 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
 
                                 moveValid = False
                                 break
-                            elif (board.getSquare(i,j).getObjectOn().getClassName() == "Mine"): 
-                                VISIBLE = True          
-                                moveValid = True
-                                break
                             elif not board.getSquare(i,j).isVisible():
                                 VISIBLE = False
                                 colx = i
@@ -2963,29 +1842,17 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
                                 moveValid = False
                                 break
                 else:
-                    bool1 = False   
-                    for (i,j) in ship.getTurnZone(r):           
-                        if (board.getSquare(i,j).getObjectOn() != None ):           
-                            if (board.getSquare(i,j).getObjectOn().getClassName() == "Mine"):           
-                                VISIBLE = True          
-                                moveValid = True            
-                                bool1 = True            
-                    if(bool1 == False):         
-                        moveValid = False 
+                    moveValid = False 
             if moveValid != False:
                 color = pygame.Color(194, 242, 221) #green
 
-        elif ship.getSubclass() != "Kamikaze" and  turnType != "positionActive" and (( x - x1 ) == 0 and (y - y1) >= -1 and (y - y1) <= ship.getSpeed()) or (abs(( x - x1 )) == 1 and (y - y1) ==0) : 
+        elif ship.getSubclass() != "Kamikaze" and turnType != "positionActive" and (( x - x1 ) == 0 and (y - y1) >= -1 and (y - y1) <= ship.getSpeed()) or (abs(( x - x1 )) == 1 and (y - y1) ==0) : 
             
             # check for obstacle
             i = y1
             while i <= y:
                 if (board.getSquare(x,i).getObjectOn() != None ):
-                    #print board.getSquare(x,i).getObjectOn()
-                    if (board.getSquare(x,i).getObjectOn().getClassName() == "Mine"):   
-                        VISIBLE = True          
-                        moveValid = True            
-                        break 
+                    #print board.getSquare(x,i).getObjectOn() 
                     if (board.getSquare(x,i).getObjectOn() == ship):
                         i+=1
                         continue
@@ -3003,10 +1870,6 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
                 i = 0
                 while i< ship.getSize():
                     if (board.getSquare(x,y-i).getObjectOn() != None):
-                        if (board.getSquare(x,y-i).getObjectOn().getClassName() == "Mine"): 
-                            VISIBLE = True          
-                            moveValid = True            
-                            break
                         if not board.getSquare(x,y-i).isVisible():
                             VISIBLE = False
                         else:
@@ -3016,10 +1879,7 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
             #check obstacle behind
             elif y-ship.getSize() <= y2-1 :
                 if (board.getSquare(x,y-ship.getSize()+1).getObjectOn() != None):
-                    if (board.getSquare(x,y-ship.getSize()+1).getObjectOn().getClassName() == "Mine"):  
-                        VISIBLE = True          
-                        moveValid = True
-                    elif not board.getSquare(x,y-ship.getSize()+1).isVisible():
+                    if not board.getSquare(x,y-ship.getSize()+1).isVisible():
                         VISIBLE = False
                         colx = x
                         coly = y-ship.getSize()+1
@@ -3032,7 +1892,6 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
         elif turnType == "positionActive" and Player1 and x >= 0 and x <= 14 and y >= ship.getSize()-1 and y <= 29:
 
             color = pygame.Color(194, 242, 221)
-            global moveValid
             moveValid = True
             #print 'y ',y
             i = y - ship.getSize() +1
@@ -3041,10 +1900,6 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
                 #print board.getSquare(x,i).getObjectOn()
                 
                 if(board.getSquare(x,i).getObjectOn()!= None):
-                    if (board.getSquare(x,i).getObjectOn().getClassName() == "Mine"):   
-                        VISIBLE = True          
-                        moveValid = True            
-                        break
                     if (board.getSquare(x,i).getObjectOn()== ship):
                         i+=1
                         continue
@@ -3055,7 +1910,6 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
         elif turnType == "positionActive" and not Player1 and x > 14 and x <= 29 and y >= ship.getSize()-1 and y <= 29:
 
             color = pygame.Color(194, 242, 221)
-            global moveValid
             moveValid = True
             #print 'y ',y
             i = y - ship.getSize() +1
@@ -3064,10 +1918,6 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
                 #print board.getSquare(x,i).getObjectOn()
                 
                 if(board.getSquare(x,i).getObjectOn()!= None):
-                    if (board.getSquare(x,i).getObjectOn().getClassName() == "Mine"):   
-                        VISIBLE = True          
-                        moveValid = True            
-                        break
                     if (board.getSquare(x,i).getObjectOn()== ship):
                         i+=1
                         continue
@@ -3076,15 +1926,7 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
                     break
                 i+=1
         else:
-            bool9 = False   
-            for (i,j) in ship.getTurnZone(r):           
-                if (board.getSquare(i,j).getObjectOn() != None ):           
-                    if (board.getSquare(i,j).getObjectOn().getClassName() == "Mine"):           
-                        VISIBLE = True          
-                        moveValid = True            
-                        bool9 = True            
-            if(bool9 == False):         
-                moveValid = False 
+            moveValid = False 
             
         if moveValid == True:
             color = pygame.Color(194, 242, 221) #green
@@ -3093,8 +1935,12 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
 
         #print "Drawing s", (x,y)
 
-        pygame.draw.polygon(surface, color, [(x*20 + x*1 + d, y*20 + y*1 + 10), (x*20 + x*1 + d + 19, y*20 + y*1 + 10), (x*20 + x*1 + d + 10, y*20 + y*1 + 29)], 0)
-        y = y - 1
+        if (ship.getSubclass() != "Kamikaze"):
+            pygame.draw.polygon(surface, color, [(x*20 + x*1 + d, y*20 + y*1 + 10), (x*20 + x*1 + d + 19, y*20 + y*1 + 10), (x*20 + x*1 + d + 10, y*20 + y*1 + 29)], 0)
+            y = y - 1
+        else:
+            pygame.draw.rect(surface, color, [x*20 + x*1 + d, y*20 + y*1 + 10, 20, 20])
+ 
         for i in range(ship.getSize() - 1):
             pygame.draw.rect(surface, color, [x*20 + x*1 + d, y*20 + y*1 + 10, 20, 20])
             y = y - 1
@@ -3127,11 +1973,6 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
                                 VISIBLE = True
                                 moveValid = False
                                 break
-                            elif (board.getSquare(i,j).getObjectOn().getClassName() == "Mine"):    
-                                print 'hit Mine'            
-                                VISIBLE = True          
-                                moveValid = True            
-                                break   
                             elif not board.getSquare(i,j).isVisible():
                                 VISIBLE = False
                                 colx = i
@@ -3143,15 +1984,7 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
                                 moveValid = False
                                 break
                 else:
-                    bool9 = False   
-                    for (i,j) in ship.getTurnZone(r):           
-                        if (board.getSquare(i,j).getObjectOn() != None ):           
-                            if (board.getSquare(i,j).getObjectOn().getClassName() == "Mine"):           
-                                VISIBLE = True          
-                                moveValid = True            
-                                bool9 = True            
-                    if(bool9 == False):         
-                        moveValid = False
+                    moveValid = False
             
             # ships that can do 180
             elif ship.getTurnRadius() == 2:
@@ -3177,13 +2010,6 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
                     i = y2+1
                     while i >= y:
                         if (board.getSquare(x,i).getObjectOn() != None ):
-                            if(board.getSquare(x,i).getObjectOn().getClassName() == "Mine"):    
-                                print "p1"          
-                                potentialmine = True            
-                                moveValid = True            
-                                VISIBLE = True          
-                                go = True           
-                                break
                             if(board.getSquare(x,i).getObjectOn() == ship):
                                 i-=1
                                 continue
@@ -3198,15 +2024,7 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
                             break
                         i-=1
                 else:
-                    bool10 = False  
-                    for (i,j) in ship.getTurnZone(r):           
-                        if (board.getSquare(i,j).getObjectOn() != None ):           
-                            if (board.getSquare(i,j).getObjectOn().getClassName() == "Mine"):           
-                                VISIBLE = True          
-                                moveValid = True            
-                                bool10 = True           
-                    if bool10 == False:         
-                        moveValid = False
+                    moveValid = False
 
                 if (x0 == x1 and y0 == y1):
                     #print "r=",r
@@ -3220,12 +2038,6 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
                                 VISIBLE = True
                                 moveValid = False
                                 break
-                            elif (board.getSquare(i,j).getObjectOn().getClassName() == "Mine"): 
-                                #print "GOnna hit Mine"         
-                                VISIBLE = True          
-                                moveValid = True            
-                                go = True           
-                                break
                             elif not board.getSquare(i,j).isVisible():
                                 VISIBLE = False
                                 colx = i
@@ -3237,25 +2049,13 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
                                 moveValid = False
                                 break
                 else:
-                    bool10 = False  
-                    for (i,j) in ship.getTurnZone(r):           
-                        if (board.getSquare(i,j).getObjectOn() != None ):           
-                            if (board.getSquare(i,j).getObjectOn().getClassName() == "Mine"):           
-                                VISIBLE = True          
-                                moveValid = True            
-                                bool10 = True           
-                    if bool10 == False:         
-                        moveValid = False  
+                    moveValid = False  
            
         elif ship.getSubclass() != "Kamikaze" and turnType != "positionActive" and (( x - x1 ) == 0 and (y1 - y) >= -1 and (y1 - y) <= ship.getSpeed()) or (abs(( x - x1 )) == 1 and (y - y1) ==0) : 
             # check for obsticals
             i = y
             while i <= y1:
                 if (board.getSquare(x,i).getObjectOn() != None ):
-                    if (board.getSquare(x,i).getObjectOn().getClassName() == "Mine"):   
-                        VISIBLE = True          
-                        moveValid = True            
-                        break
                     if (board.getSquare(x,i).getObjectOn() == ship):
                         i+=1
                         continue
@@ -3273,10 +2073,6 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
                 i = 0
                 while i< ship.getSize():
                     if (board.getSquare(x,y+i).getObjectOn() != None):
-                        if (board.getSquare(x,y+i).getObjectOn().getClassName() == "Mine"): 
-                            VISIBLE = True          
-                            moveValid = True            
-                            break
                         if not board.getSquare(i,y+i).isVisible():
                             VISIBLE = False
                         else:
@@ -3287,11 +2083,8 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
             #check obsticals behind
             elif y+ship.getSize() >= y2+1 :
                 if (board.getSquare(x,y+ship.getSize()-1).getObjectOn() != None):
-                    if (board.getSquare(x,y+ship.getSize()-1).getObjectOn().getClassName() == "Mine"):  
-                        VISIBLE = True          
-                        moveValid = True
-                    elif not board.getSquare(i,y+ship.getSize()-1).isVisible():
-                        VISIBLE = False         
+                    if not board.getSquare(i,y+ship.getSize()-1).isVisible():
+                        VISIBLE = False
                     else:
                         colx = x
                         coly = ship.getSize()-1
@@ -3300,17 +2093,12 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
  
         elif turnType == "positionActive" and Player1 and x >= 0 and x <= 14 and y >= 0 and y <= 29 - ship.getSize() + 1:
             color = pygame.Color(194, 242, 221)
-            global moveValid
             moveValid = True
             
             i = y + ship.getSize()-1
             #print 'i',i
             while i > y:
                 if (board.getSquare(x,i).getObjectOn()!= None):
-                    if (board.getSquare(x,i).getObjectOn().getClassName() == "Mine"):   
-                        VISIBLE = True          
-                        moveValid = True            
-                        break
                     if (board.getSquare(x,i).getObjectOn() == ship):
                         i-=1
                         continue
@@ -3322,17 +2110,12 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
         
         elif turnType == "positionActive" and not Player1 and x > 14 and x <= 29 and y >= 0 and y <= 29 - ship.getSize() + 1:
             color = pygame.Color(194, 242, 221)
-            global moveValid
             moveValid = True
             
             i = y + ship.getSize()-1
             #print 'i',i
             while i > y:
                 if (board.getSquare(x,i).getObjectOn()!= None):
-                    if (board.getSquare(x,i).getObjectOn().getClassName() == "Mine"):   
-                        VISIBLE = True          
-                        moveValid = True            
-                        break
                     if (board.getSquare(x,i).getObjectOn() == ship):
                         i-=1
                         continue
@@ -3343,15 +2126,7 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
                 i-=1
 
         else:
-            bool11 = False  
-            for (i,j) in ship.getTurnZone(r):           
-                if (board.getSquare(i,j).getObjectOn() != None ):           
-                    if (board.getSquare(i,j).getObjectOn().getClassName() == "Mine"):           
-                        VISIBLE = True          
-                        moveValid = True            
-                        bool11 = True           
-            if bool11 == False:         
-                moveValid = False
+            moveValid = False
             
         if moveValid == True:
             color = pygame.Color(194, 242, 221) #green
@@ -3360,8 +2135,17 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
 
         #print "Drawing n", (x,y)
 
-        pygame.draw.polygon(surface, color, [(x*20 + x*1 + d, y*20 + y*1 + 29), (x*20 + x*1 + d + 19, y*20 + y*1 + 29), (x*20 + x*1 + d + 9, y*20 + y*1 + 10)], 0)
-        y = y + 1
+       
+            
+
+
+
+        if (ship.getSubclass() != "Kamikaze"):
+            pygame.draw.polygon(surface, color, [(x*20 + x*1 + d, y*20 + y*1 + 29), (x*20 + x*1 + d + 19, y*20 + y*1 + 29), (x*20 + x*1 + d + 9, y*20 + y*1 + 10)], 0)
+            y = y + 1
+        else:
+            pygame.draw.rect(surface, color, [x*20 + x*1 + d, y*20 + y*1 + 10, 20, 20])
+ 
         for i in range(ship.getSize() - 1):
             pygame.draw.rect(surface, color, [x*20 + x*1 + d, y*20 + y*1 + 10, 20, 20])
             y = y + 1
@@ -3370,9 +2154,9 @@ def drawShip(surface, ship, x, y, rotation, game,screen):
 
     if not VISIBLE:
         print "COLLISION BUT NOT VISIBLE"
-    #print "VALID MOVE: ", moveValid
-    #print "VISIBLE", VISIBLE
-    #print "turntype: ",turnType
+    print "VALID MOVE: ", moveValid
+    print "VISIBLE", VISIBLE
+    print "turntype: ",turnType
     pygame.display.update()
     
 def firingRange(surface, ship, x, y, weaponType):
@@ -3384,8 +2168,8 @@ def firingRange(surface, ship, x, y, weaponType):
     weaponList = ship.getWeaponList()
     i = 0
     for weapon in weaponList:
-        if weapon.getName() == weaponType:
-            #print weapon.getName()
+        if weapon.getSubclass() == weaponType:
+            #print weapon.getSubclass()
             break
         else:
             i = i + 1
@@ -3396,17 +2180,13 @@ def firingRange(surface, ship, x, y, weaponType):
 
     if (ship.getOrientation() == "N" or ship.getOrientation() == "S"):
         if (abs(x - x1) <= (yRange - 1)/2) and (abs(y - y1) <= (xRange - size)/2 or abs(y - y2) <= (xRange - size)/2):
-            #global moveValid
             moveValid = True
         else:
-            #global moveValid
             moveValid = False
     elif (ship.getOrientation() == "E" or ship.getOrientation() == "W"):
         if (abs(x - x1) <= (xRange - size)/2 or abs(x - x2) <= (xRange - size)/2) and (abs(y - y1) <= (yRange - 1)/2 or abs(y - y2) <= (yRange - size)/2):
-            #global moveValid
             moveValid = True
         else:
-            #global moveValid
             moveValid = False
     return tuple
 
@@ -3417,7 +2197,7 @@ def torpedoRange(surface, ship, x, y, weaponType):
     weaponList = ship.getWeaponList()
     i = 0
     for weapon in weaponList:
-        if weapon.getName() == weaponType:
+        if weapon.getSubclass() == weaponType:
             break
         else:
             i = i + 1
@@ -3451,4 +2231,4 @@ if __name__ == '__main__':
     global offline
     offline = True
     # main('')
-    main('offline','player1','player2',True,[],'')
+    main('offline',1,1,True,[])

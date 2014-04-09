@@ -10,8 +10,8 @@ HIGHLIGHT = (250,250,155)   # YELLOW
 d = 85
 
 class PlayerState(object):
-    def __init__(self, playerType):
-        #self.username = username
+    def __init__(self, playerType,user):
+        self.username = user
         self.shipList = []
 
 
@@ -64,6 +64,8 @@ class PlayerState(object):
 
     def getUsername(self):
         return self.username
+    def setUsername(self,var):
+        self.username = var
 
     def getShipList(self):
         return self.shipList

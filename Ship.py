@@ -104,82 +104,83 @@ class Ship(object):
                 
         return rlist
     def getdroppingRange(self, position):
-        rlist   =   []
-        first   =   position[0]
-        second  =   position[1]
-        x       =   first[0]
-        y       =   first[1]
-        i       =   second[0]
-        j       =   second[1]
-        #print position
-        if (self.getOrientation() == "E"):
-            tuple1  =   (x+1, y)
-            tuple2  =   (x, y+1)
-            tuple3  =   (x, y-1)
-            tuple4  =   (i-1, j)
-            tuple5  =   (i, j+1)
-            tuple6  =   (i, j-1)
-            rlist.append(tuple1)
-            rlist.append(tuple2)
-            rlist.append(tuple3)
-            rlist.append(tuple4)
-            rlist.append(tuple5)
-            rlist.append(tuple6)
-            
-        elif (self.getOrientation() == "S"): # check using tail
-            p = y
-            y = j
-            j = p
-            
-            tuple1  =   (x+1, y)
-            tuple2  =   (x-1, y)
-            tuple3  =   (i+1, j)
-            tuple4  =   (i-1, j)
-            tuple5  =   (x, y-1)
-            tuple6  =   (i, j+1)
-            rlist.append(tuple1)
-            rlist.append(tuple2)
-            rlist.append(tuple3)
-            rlist.append(tuple4)
-            rlist.append(tuple5)
-            rlist.append(tuple6)
+        print "DROPPP LENGTH"
+        if(len(position) >=2):
+            rlist   =   []
+            first   =   position[0]
+            second  =   position[1]
+            x       =   first[0]
+            y       =   first[1]
+            i       =   second[0]
+            j       =   second[1]
+            #print position
+            if (self.getOrientation() == "E"):
+                tuple1  =   (x+1, y)
+                tuple2  =   (x, y+1)
+                tuple3  =   (x, y-1)
+                tuple4  =   (i-1, j)
+                tuple5  =   (i, j+1)
+                tuple6  =   (i, j-1)
+                rlist.append(tuple1)
+                rlist.append(tuple2)
+                rlist.append(tuple3)
+                rlist.append(tuple4)
+                rlist.append(tuple5)
+                rlist.append(tuple6)
+                
+            elif (self.getOrientation() == "S"): # check using tail
+                p = y
+                y = j
+                j = p
+                
+                tuple1  =   (x+1, y)
+                tuple2  =   (x-1, y)
+                tuple3  =   (i+1, j)
+                tuple4  =   (i-1, j)
+                tuple5  =   (x, y-1)
+                tuple6  =   (i, j+1)
+                rlist.append(tuple1)
+                rlist.append(tuple2)
+                rlist.append(tuple3)
+                rlist.append(tuple4)
+                rlist.append(tuple5)
+                rlist.append(tuple6)
 
-        elif (self.getOrientation() == "N"): # check using head
-            print "north"
-            p = y
-            y = j
-            j = p
-            
-            tuple1  =   (x+1, y)
-            tuple2  =   (x-1, y)
-            tuple3  =   (i+1, j)
-            tuple4  =   (i-1, j)
-            tuple5  =   (x, y+1)
-            tuple6  =   (i, j-1)
-            rlist.append(tuple1)
-            rlist.append(tuple2)
-            rlist.append(tuple3)
-            rlist.append(tuple4)
-            rlist.append(tuple5)
-            rlist.append(tuple6)
+            elif (self.getOrientation() == "N"): # check using head
+                print "north"
+                p = y
+                y = j
+                j = p
+                
+                tuple1  =   (x+1, y)
+                tuple2  =   (x-1, y)
+                tuple3  =   (i+1, j)
+                tuple4  =   (i-1, j)
+                tuple5  =   (x, y+1)
+                tuple6  =   (i, j-1)
+                rlist.append(tuple1)
+                rlist.append(tuple2)
+                rlist.append(tuple3)
+                rlist.append(tuple4)
+                rlist.append(tuple5)
+                rlist.append(tuple6)
 
-        elif (self.getOrientation() == "W"): # check using tail
-            tuple1  =   (x-1, y)
-            tuple2  =   (x, y+1)
-            tuple3  =   (x, y-1)
-            tuple4  =   (i+1, j)
-            tuple5  =   (i, j+1)
-            tuple6  =   (i, j-1)
-            rlist.append(tuple1)
-            rlist.append(tuple2)
-            rlist.append(tuple3)
-            rlist.append(tuple4)
-            rlist.append(tuple5)
-            rlist.append(tuple6)
+            elif (self.getOrientation() == "W"): # check using tail
+                tuple1  =   (x-1, y)
+                tuple2  =   (x, y+1)
+                tuple3  =   (x, y-1)
+                tuple4  =   (i+1, j)
+                tuple5  =   (i, j+1)
+                tuple6  =   (i, j-1)
+                rlist.append(tuple1)
+                rlist.append(tuple2)
+                rlist.append(tuple3)
+                rlist.append(tuple4)
+                rlist.append(tuple5)
+                rlist.append(tuple6)
 
-        #print "LIST: ", rlist
-        return rlist
-
+            #print "LIST: ", rlist
+            return rlist
     def mineDropped(self, ship):
         print "mineDropped"
         print ship.getName()
@@ -696,6 +697,10 @@ class Ship(object):
         for (x,y) in self.position:
             sq = board.getSquare(x,y)
             sq.setObjectOn(None)
+    def destroyKamakazi(self, board, x, y):
+        print "DESTROYING Kamikaze at"
+        sq = board.getSquare(x,y)
+        sq.setObjectOn(None)
         
     def getClassName(self):
         return "Ship"

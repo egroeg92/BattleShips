@@ -3,16 +3,19 @@ from Board import Board
 from Square import Square
 from reefGeneration import reefGeneration
 import pygame
+from Coral import Coral
+
+reefGenerator = reefGeneration()
 
 class Game(object):
-    def __init__(self, player,coral):
+    def __init__(self, player,coral,user,opp):
         self.player = player
         if player:    
-            self.player1 = PlayerState(True)
-            self.player2 = PlayerState(False)
+            self.player1 = PlayerState(True,user)
+            self.player2 = PlayerState(False,opp)
         else:
-            self.player1 = PlayerState(False)
-            self.player2 = PlayerState(True)
+            self.player1 = PlayerState(False,user)
+            self.player2 = PlayerState(True,opp)
 
         self.shiplist = self.player1.getShipList() + self.player2.getShipList()
         # coral = [(10, 3), (18, 4), (17, 9), (10,10), (14, 11), (18, 20), (16, 26), (10, 23)]
@@ -22,24 +25,50 @@ class Game(object):
         self.updateVisibility()
         self.updateVisibilityRadar()
         self.updateBoard()
+        self.turn = True
+        self.turnType = ''
+
+    #?
+
+    def reversePlayers(self):
+        x = self.player1
+        self.player1 = self.player2
+        self.player2 = self.player1
+
+    def setTurn(self,var):
+        self.turn = var
+    def getTurn(self):
+        return self.turn
+    def setTurnType(self,var):
+        self.turnType = var      
+    def getTurnType(self):
+        return self.turnType
+
 
     #?
     def getCoral(self):
         return self.coral        
     #?
     def setCoral(self, coral):
-        self.coral = coral
-    #?
-    def updateReef(self, reefGenerator,corallist, oldcorallist):
+        oldcorallist = self.coral
+        print 'oldcorallist ',oldcorallist
+        
         for (x,y) in oldcorallist:
-            #print game.getBoard().getSquare(x,y).getObjectOn()
             sq = Square(None,(x,y))
             self.getBoard().setSquare(x,y, sq)
-        #self.updateVisibility()
-        #for x in range(24):
-        #    coordinate = reefGenerator.random()
-        #    corallist.append(coordinate)
-        # generate 24 reef squares        
+               
+        self.coral = coral
+        for (x,y) in self.coral:
+            c = Coral()
+            sq = Square(c,(x,y))
+            self.getBoard().setSquare(x,y, sq)
+        
+        
+        self.updateVisibility()
+        
+    #?
+    def randomizeReef(self,corallist):
+        
         i = 0
         j = 0
         k = 0
@@ -49,24 +78,23 @@ class Game(object):
             if coordinate not in corallist:
                 corallist.append(coordinate)
                 i = i + 1
-        print "Length of corallist is: ", len(corallist)
         while j != 1:
             coordinate = reefGenerator.randommid()
             if coordinate not in corallist:
                 corallist.append(coordinate)
                 j = j + 1
-        print "Length of corallist is: ", len(corallist)
         while k != 1:
             coordinate = reefGenerator.randommid2()
             if coordinate not in corallist:
                 corallist.append(coordinate)
                 k = k + 1
-        print "Length of corallist is: ", len(corallist)
         while l != 11:
             coordinate = reefGenerator.random2()
             if coordinate not in corallist:
                 corallist.append(coordinate)
                 l = l + 1
+
+        return corallist
         print "Length of corallist is: ", len(corallist)       
     def getCurrentPlayer(self):
         return self.player1
@@ -158,18 +186,64 @@ class Game(object):
                 self.updateVisibilityRadar()
 
     def mineDamagedShip(self, ship, x, y, backwards):
-        if ship.getName() != "MineLayer":
+        if ship.getName() == "Kamikaze":
+                health = ship.getHealth()
+                health[0] = 0
+                print sum(health)
+                if sum(health) == 0:
+                    ship.destroyKamakazi(self.gameBoard,x,y)
+                    self.updateVisibility()
+                    self.updateVisibilityRadar()
+
+        elif ship.getName() != "Kamikaze": # This can be easily changed if the minelayer does not get destroyed
+            tuple = (x,y)
+            index = ship.positionIndex(tuple)
             health = ship.getHealth()
             if backwards:
                 health[-1] = 0
                 health[-2] = 0
             else:
-                health[0] = 0
-                health[1] = 0
+                print ship.getName()
+                print ship.getHealth()
+                if(sum(health) <= 4  and ship.getName() == "Cruiser"):
+                    ship.destroyShip(self.gameBoard)
+                    self.updateVisibility()
+                    self.updateVisibilityRadar()
+                    return 1
+
+                elif(sum(health) <= 2  and ship.getName() == "Destroyer"):
+                    ship.destroyShip(self.gameBoard)
+                    self.updateVisibility()
+                    self.updateVisibilityRadar()
+                    return 1
+
+                elif(sum(health) <= 2  and ship.getName() == "TorpedoBoat"):
+                    ship.destroyShip(self.gameBoard)
+                    self.updateVisibility()
+                    self.updateVisibilityRadar()
+                    return 1
+
+                elif(sum(health) <= 2  and ship.getName() == "RadarBoat"):
+                    ship.destroyShip(self.gameBoard)
+                    self.updateVisibility()
+                    self.updateVisibilityRadar()
+                    return 1
+
+                elif(index == 0):
+                    health[index] = 0
+                    health[index+1] = 0
+
+                else:
+                    health[index] = 0
+                    health[index-1] = 0
+                    print health
             if sum(health) == 0:
                 ship.destroyShip(self.gameBoard)
                 self.updateVisibility()
                 self.updateVisibilityRadar()
+                return 1
+            else:
+                return 0
     
     def moveShip(self, x1, y1, visible):
         if not visible:
@@ -437,14 +511,54 @@ class Game(object):
         self.updateVisibilityRadar()
 
     def dropMine(self, x, y):
-        objectOn = self.gameBoard.getSquare(x,y).getObjectOn()
-        if objectOn == None:
-            return "Mine dropped successful!" 
+        if(x<30 and y<30):
+            objectOn = self.gameBoard.getSquare(x,y).getObjectOn()  
+            if objectOn == None:
+        # if mine is not dropped on base or coal, or a ship, or another mine then it cant be droppped                
+                if(y-1 >= 0):
+                    objectOnN = self.gameBoard.getSquare(x,(y-1)).getObjectOn()
+                    if objectOnN != None:
+                        if(objectOnN.getClassName() == "Ship"):
+                            if objectOnN.getName() != "MineLayer":
+                                return "Cant drop mine at selected location"
+                        if(objectOnN.getClassName() != "Ship" and objectOnN.getClassName() != "Mine"):
+                            return "Cant drop mine at selected location"
+                if(x+1 < 30):
+                    objectOnE = self.gameBoard.getSquare((x+1),y).getObjectOn()
+                    if objectOnE != None:
+                        if(objectOnE.getClassName() == "Ship"):
+                            if objectOnE.getName() != "MineLayer":
+                                return "Cant drop mine at selected location" 
+                        if(objectOnE.getClassName() != "Ship" and objectOnE.getClassName() != "Mine"):
+                            return "Cant drop mine at selected location"
+                                   
+                if(y+1 < 30):
+                    objectOnS = self.gameBoard.getSquare(x,(y+1)).getObjectOn()
+                    if objectOnS != None:
+                        if(objectOnS.getClassName() == "Ship"):
+                            if objectOnS.getName() != "MineLayer":
+                                return "Cant drop mine at selected location"
+                        if(objectOnS.getClassName() != "Ship" and objectOnS.getClassName() != "Mine"):
+                            return "Cant drop mine at selected location"
 
-        # if mine is not dropped on base or coal, or a ship, or another mine then it cant be droppped                       
-        elif objectOn.getClassName() == "Ship" or objectOn.getClassName() == "Coral"  or objectOn.getClassName() == "Base" or objectOn.getClassName() == "Mine": 
-                return "Cant drop mine at selected location"  
-        
+                if(x-1 >= 0): 
+                    objectOnW = self.gameBoard.getSquare((x-1),y).getObjectOn()
+                    if objectOnW != None:
+                        if(objectOnW.getClassName() == "Ship"):
+                            if objectOnW.getName() != "MineLayer":
+                                return "Cant drop mine at selected location"
+                        if(objectOnW.getClassName() != "Ship" and objectOnW.getClassName() != "Mine"):
+                            return "Cant drop mine at selected location"
+                else:
+                    if objectOn == None:
+                        return "Mine dropped successful!" 
+                    else:
+                        return "Cant drop mine at selected location"
+            else: 
+                return "Cant drop mine at selected location"
+        else: 
+                return "Cant drop mine at selected location" 
+
 
     def dropMineOnBoard(self, mine, position):
         # Add mind to the sqaure object
@@ -458,8 +572,14 @@ class Game(object):
         print"Removing mine from board"
         x = x
         y = y
-        square = self.gameBoard.getSquare(x,y)
-        self.gameBoard.getSquare(x,y).removeObjectOn()
+        #square = self.gameBoard.getSquare(x,y).getClassName()
+        #print square
+        #self.gameBoard.getSquare(x,y).removeObjectOn()
+        if self.gameBoard.getSquare(x,y).getObjectOn() != None:
+            sq = self.gameBoard.getSquare(x,y).getObjectOn().getClassName()
+            print sq
+            if sq == "Mine":
+                self.gameBoard.getSquare(x,y).removeObjectOn()
 
     def PickUpMine(self, x, y):
         objectOn = self.gameBoard.getSquare(x,y).getObjectOn()

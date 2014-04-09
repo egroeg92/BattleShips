@@ -35,6 +35,7 @@ def handler(clientsocket, clientaddr):
     clients.append(clientsocket)
     oppAddr = ''
     oppSock = ''
+    loadgame = ''
     while 1:
         data = '' 
         data = clientsocket.recv(1024)
@@ -63,6 +64,20 @@ def handler(clientsocket, clientaddr):
                 x[0].send(str(matchup_address))
 
             # break
+        
+        elif data[:5] == 'Load:':
+
+            loadgame = data.split('/')
+            oppAddr = loadgame[1]
+            loadgame = loadgame[-1]
+
+            print loadgame
+            # oppSock.send('Load:'+loadgame)
+
+            for x in connections:
+            
+                if (str(x[1]) == str(oppAddr)):
+                    x[0].send('Load:'+loadgame)
 
         elif data == 'StartGame':
             print "STARTED"
@@ -72,7 +87,7 @@ def handler(clientsocket, clientaddr):
             lock.acquire()
             try:
                 coral = generateReef()
-                clientsocket.send("Reef:"+str(coral))
+                clientsocket.send("Reef:"+str(coral)+':'+loadgame)
 
             finally:
                 lock.release() 
@@ -251,6 +266,19 @@ def handler(clientsocket, clientaddr):
                 lock.release()
                 
             
+        elif dataList[0] == 'yesLoad':
+            oppAddr = dataList[1]
+
+            for x in connections:
+                if (str(x[1]) == str(oppAddr)):
+                    x[0].send('yesLoad')
+        
+        elif dataList[0] == 'noLoad':
+            oppAddr = dataList[1]
+
+            for x in connections:
+                if (str(x[1]) == str(oppAddr)):
+                    x[0].send('noLoad')
         
         elif dataList[0] == 'Matchup' :
             print 'MATCHUP'
@@ -279,6 +307,7 @@ def handler(clientsocket, clientaddr):
             print dataList
             for x in matchup_sockets:
                 if str(x[1]) == dataList[1]:
+                    oppSock = x[0]
                     x[0].send(':ACCEPTED:'+str(un))
 
         elif dataList[0] == 'ExitSetup':
@@ -301,9 +330,21 @@ def handler(clientsocket, clientaddr):
                 if (str(x[1]) == str(oppAddr)):
                     oppSock = x[0]
                     oppSock.send('OppReady')
-        
+
+        elif dataList[0] == 'Save':
+            oppSock.send('Save:'+dataList[1])
+
         elif dataList[0] == 'Reef':
             oppSock.send('Reef:'+str(dataList[1]))
+
+        elif dataList[0] == 'ReefRequest':
+            oppSock.send('ReefRequest:'+dataList[1])
+        elif dataList[0] == 'ReefAccept':
+            oppSock.send('ReefAccept:')
+        elif dataList[0] == 'ReefReject':
+            oppSock.send('ReefReject:')
+
+
         elif dataList[0] == 'Move':
             oppSock.send('Move:'+dataList[1]+':'+dataList[2]+':'+dataList[3]+':'+dataList[4]+':'+dataList[5])
 

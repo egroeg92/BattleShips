@@ -249,7 +249,7 @@ class Board:
                                 if player1:
                                     surface.blit(pygame.image.load('images/FW.png').convert(),(x*20 + x*1 + d, y*20 + y*1 + 10))
                                 else:
-                                    surface.blit(pygame.image.load('images/P2FW.png').convert(),(x*20 + x*1 + d, y*20 + y*1 + 10))
+                                    surface.blit(pygame.image.load('images/P2Fw.png').convert(),(x*20 + x*1 + d, y*20 + y*1 + 10))
 
                                 # pygame.draw.polygon(surface, c, [(x*20 + x*1 + d + 19, y*20 + y*1 + 10), (x*20 + x*1 + d + 19, y*20 + y*1 + 29), (x*20 + x*1 + d, y*20 + y*1 + 20)], 0)
                         
@@ -264,7 +264,7 @@ class Board:
                                 surface.blit(pygame.image.load('images/FND.png').convert(),(x*20 + x*1 + d, y*20 + y*1 + 10))
                             else:
                                 if player1:
-                                    surface.blit(pygame.image.load('images/P1FN.png').convert(),(x*20 + x*1 + d, y*20 + y*1 + 10))
+                                    surface.blit(pygame.image.load('images/NS.png').convert(),(x*20 + x*1 + d, y*20 + y*1 + 10))
                                 else:
                                     surface.blit(pygame.image.load('images/P2FN.png').convert(),(x*20 + x*1 + d, y*20 + y*1 + 10))
 

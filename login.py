@@ -1,14 +1,14 @@
-import pygame, pygbutton, sys
-
-from pygame.locals import *
 from socket import *
-
 import threading
 
+import pygame, pygbutton, sys
+from pygame.locals import *
 
+import Matchup
 import Start
 import textbox
-import Matchup
+
+
 FPS = 30
 WINDOWWIDTH = 800
 WINDOWHEIGHT = 750
@@ -47,14 +47,14 @@ def start(clientsocket):
 	pw = textbox.start(SCREEN,"Enter Password:")
 
 
-	
+	global loop
+	loop = True
 	buttonLogin = pygbutton.PygButton((WINDOWWIDTH/2-60, 100, 120, 30), 'Login In')
 	buttonSignUp = pygbutton.PygButton((WINDOWWIDTH/2-60, 150, 120, 30), 'Sign Up')
 	buttonExit = pygbutton.PygButton((WINDOWWIDTH/2-60, 250, 120, 30), 'Disconnect')
 	l_thread = threading.Thread(target = listener, args = (clientsocket,SCREEN))
 	l_thread.start()
-	global loop
-	loop = True
+
 	dc = False
 	while  loop:
 		buttonSignUp.draw(SCREEN)
