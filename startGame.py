@@ -991,7 +991,15 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                                         if x >= (ship.getSize()-1) and x <= 29 and y >= 0 and y <= 29:
                                             if VISIBLE:
                                                 #print "move"
-                                                game.moveShip(x, y, True);
+                                                MLIST = getMineDamagedCoordinates(ship, x, y, False, screen, backwards) 
+                                                if(len(MLIST) != 0):                     
+                                                    p = MLIST[0]            
+                                                    q = MLIST[1]            
+                                                    game.moveShip(p,q, True)            
+                                                    MLIST = ()          
+                                                else:           
+                                                    game.moveShip(x, y, True)
+
                                                 if (armKamikaze):
                                                     ship.setSelected(True)
                                                     game.detonateKamikaze()
@@ -1021,7 +1029,15 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                                         if x <= 29 - ship.getSize() and x >= 0 and y >= 0 and y <= 29:
                                             if VISIBLE:
                                                 #print "move"
-                                                game.moveShip(x, y, True);
+                                                MLIST = getMineDamagedCoordinates(ship, x, y, False, screen, backwards) 
+                                                if(len(MLIST) != 0):                     
+                                                    p = MLIST[0]            
+                                                    q = MLIST[1]            
+                                                    game.moveShip(p,q, True)            
+                                                    MLIST = ()          
+                                                else:           
+                                                    game.moveShip(x, y, True)
+                                                
                                                 if not offline:
                                                     clientsocket.send('Move:'+str(shiplist.index(ship))+':'+str(x)+':'+str(y)+':True:False')
                                                     turn = False
@@ -1048,7 +1064,15 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                                         if x >= 0 and x <= 29 and y >= back_postion[1] and y <= 29:
                                             if VISIBLE:
                                                 #print "move"
-                                                game.moveShip(x, y, True);
+                                                MLIST = getMineDamagedCoordinates(ship, x, y, False, screen, backwards) 
+                                                if(len(MLIST) != 0):                     
+                                                    p = MLIST[0]            
+                                                    q = MLIST[1]            
+                                                    game.moveShip(p,q, True)            
+                                                    MLIST = ()          
+                                                else:           
+                                                    game.moveShip(x, y, True)
+
                                                 if not offline:
                                                     clientsocket.send('Move:'+str(shiplist.index(ship))+':'+str(x)+':'+str(y)+':True:False')
                                                     turn = False
@@ -1072,7 +1096,14 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                                         if x >= 0 and x <= 29 and y >= 0 and y <= 29-ship.getSize():
                                             if VISIBLE:
                                                 #print "move"
-                                                game.moveShip(x, y, True);
+                                                MLIST = getMineDamagedCoordinates(ship, x, y, False, screen, backwards) 
+                                                if(len(MLIST) != 0):                     
+                                                    p = MLIST[0]            
+                                                    q = MLIST[1]            
+                                                    game.moveShip(p,q, True)            
+                                                    MLIST = ()          
+                                                else:           
+                                                    game.moveShip(x, y, True)
                                                 if not offline:
                                                     clientsocket.send('Move:'+str(shiplist.index(ship))+':'+str(x)+':'+str(y)+':True:False')
                                                     turn = False
@@ -1092,7 +1123,7 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                                                 clientsocket.send('Move:'+str(shiplist.index(ship))+':'+str(colx)+':'+str(coly)+':False:False')
                                                 turn = False
                                                 game.setTurn(False)
-                                minehit = checkMineDamage(ship, i, j, False, screen, backwards)
+                                minehit = checkMineDamage(ship, x, y, False, screen, backwards)
                                 backwards == False
                                 ship.setSelected(False)
                                 global turnType
@@ -2052,12 +2083,13 @@ def checkMineDamage(ship,x,y, isTurning, screen, backwards):
             print i,j
             for s,t in ship.getPositionList():
                 if((i==s and j==t) or ((i+1==s) and j==t) or ((i-1==s) and j==t) or (i==s and (j+1)==t) or (i==s and (j-1)==t)):   
-                    game.mineDamagedShip(ship, s, t, False)
-                    moveValid = False
-                    removeMineList(i,j)
-                    game.removeMine(i,j)
-                    indigo = True
-                    break
+                    r = game.mineDamagedShip(ship, s, t, False)
+                    if r == 1:
+                        moveValid = False
+                        removeMineList(i,j)
+                        game.removeMine(i,j)
+                        indigo = True
+                        break
 
     else:    
         if orientation == "E":
@@ -2067,191 +2099,139 @@ def checkMineDamage(ship,x,y, isTurning, screen, backwards):
                     print i,j
                     for s,t in ship.getPositionList():
                         if((i==s and j==t) or ((i+1==s) and j==t) or ((i-1==s) and j==t) or (i==s and (j+1)==t) or (i==s and (j-1)==t)):   
-                            game.mineDamagedShip(ship, s, t, True)
-                            moveValid = True
-                            removeMineList(i,j)
-                            game.removeMine(i,j)
-                            indigo = True
-                            break
+                            r = game.mineDamagedShip(ship, s, t, True)
+                            if r == 1:
+                                moveValid = True
+                                removeMineList(i,j)
+                                game.removeMine(i,j)
+                                indigo = True
+                                break
                 if(indigo == False):
-                    print "CHECKING"
                     for i, j in mineList:
-                        print i,j
                         for s,t in ship.getPositionList():
-                            print "here iti s:"
-                            print (s+1), i 
-
-
                             if((i==s and j==t) or ((i+1==s) and j==t) or ((i-1==s) and j==t) or (i==s and (j+1)==t) or (i==s and (j-1)==t)):
-                                print "eqeual N E S W"
-                                print i,j
-                                t = game.mineDamagedShip(ship, s, t, True)
-                                if t==1:
-                                    ship.destroyShip(self.gameBoard)
-                                    self.updateVisibility()
-                                    self.updateVisibilityRadar()
+                                r = game.mineDamagedShip(ship, s, t, True)
+                                if r==1:
+                                    moveValid = True
+                                    removeMineList(i,j)
+                                    game.removeMine(i, j)
+                                    indigo = True
+                                    break
+            elif backwards == False:
+                for i, j in mineList:
+                    for s,t in ship.getPositionList():
+                        if( (i==s and j==t) or ((i+1==s) and j==t) or ((i-1==s) and j==t) or (i==s and (j+1)==t) or (i==s and (j-1)==t)):
+                            r = game.mineDamagedShip(ship, s, t, False)
+                            if r == 1:
                                 moveValid = True
                                 removeMineList(i,j)
                                 game.removeMine(i, j)
                                 indigo = True
                                 break
-            elif backwards == False:
-                for i, j in mineList:
-                    print "mien sluts"
-                    print i,j
-                    for s,t in ship.getPositionList():
-                        if( (i==s and j==t) or ((i+1==s) and j==t) or ((i-1==s) and j==t) or (i==s and (j+1)==t) or (i==s and (j-1)==t)):
-                            print "eqeual hit"
-                            print s,t
-                            game.mineDamagedShip(ship, s, t, False)
-                            moveValid = True
-                            removeMineList(i,j)
-                            game.removeMine(i, j)
-                            indigo = True
-                            break
 
         if orientation == "W":
             if backwards == True:
                 for i, j in mineList:
-                    print "mine"
-                    print i,j
                     for s,t in ship.getPositionList():
                         if((i==s and j==t) or ((i+1==s) and j==t) or ((i-1==s) and j==t) or (i==s and (j+1)==t) or (i==s and (j-1)==t)):   
-                            game.mineDamagedShip(ship, s, t, True)
-                            moveValid = True
-                            removeMineList(i,j)
-                            game.removeMine(i,j)
-                            indigo = True
-                            break
+                            r = game.mineDamagedShip(ship, s, t, True)
+                            if r == 1:
+                                moveValid = True
+                                removeMineList(i,j)
+                                game.removeMine(i,j)
+                                indigo = True
+                                break
                 if(indigo == False):
-                    print "CHECKING"
                     for i, j in mineList:
-                        print i,j
                         for s,t in ship.getPositionList():
-                            print "here iti s:"
-                            print (s+1), i 
-
-
                             if((i==s and j==t) or ((i+1==s) and j==t) or ((i-1==s) and j==t) or (i==s and (j+1)==t) or (i==s and (j-1)==t)):
-                                print "eqeual N E S W"
-                                print i,j
                                 t = game.mineDamagedShip(ship, s, t, True)
                                 if t==1:
-                                    ship.destroyShip(self.gameBoard)
-                                    self.updateVisibility()
-                                    self.updateVisibilityRadar()
+                                    moveValid = True
+                                    removeMineList(i,j)
+                                    game.removeMine(i, j)
+                                    indigo = True
+                                    break
+            elif backwards == False:
+                for i, j in mineList:
+                    for s,t in ship.getPositionList():
+                        if( (i==s and j==t) or ((i+1==s) and j==t) or ((i-1==s) and j==t) or (i==s and (j+1)==t) or (i==s and (j-1)==t)):
+                            r = game.mineDamagedShip(ship, s, t, False)
+                            if r == 1:
                                 moveValid = True
                                 removeMineList(i,j)
                                 game.removeMine(i, j)
                                 indigo = True
                                 break
-            elif backwards == False:
-                for i, j in mineList:
-                    for s,t in ship.getPositionList():
-                        if( (i==s and j==t) or ((i+1==s) and j==t) or ((i-1==s) and j==t) or (i==s and (j+1)==t) or (i==s and (j-1)==t)):
-                            print "eqeual hit"
-                            print s,t
-                            game.mineDamagedShip(ship, s, t, False)
-                            moveValid = True
-                            removeMineList(i,j)
-                            game.removeMine(i, j)
-                            indigo = True
-                            break
 
         if orientation == "N":
             if backwards == True:
                 for i, j in mineList:
-                    print "mine"
-                    print i,j
                     for s,t in ship.getPositionList():
                         if((i==s and j==t) or ((i+1==s) and j==t) or ((i-1==s) and j==t) or (i==s and (j+1)==t) or (i==s and (j-1)==t)):   
-                            game.mineDamagedShip(ship, s, t, True)
-                            moveValid = True
-                            removeMineList(i,j)
-                            game.removeMine(i,j)
-                            indigo = True
-                            break
+                            r = game.mineDamagedShip(ship, s, t, True)
+                            if r == 1:
+                                moveValid = True
+                                removeMineList(i,j)
+                                game.removeMine(i,j)
+                                indigo = True
+                                break
                 if(indigo == False):
-                    print "CHECKING"
                     for i, j in mineList:
-                        print i,j
                         for s,t in ship.getPositionList():
-                            print "here iti s:"
-                            print (s+1), i 
-
-
                             if((i==s and j==t) or ((i+1==s) and j==t) or ((i-1==s) and j==t) or (i==s and (j+1)==t) or (i==s and (j-1)==t)):
-                                print "eqeual N E S W"
-                                print i,j
                                 t = game.mineDamagedShip(ship, s, t, True)
                                 if t==1:
-                                    ship.destroyShip(self.gameBoard)
-                                    self.updateVisibility()
-                                    self.updateVisibilityRadar()
+                                    moveValid = True
+                                    removeMineList(i,j)
+                                    game.removeMine(i, j)
+                                    indigo = True
+                                    break
+            elif backwards == False:
+                for i, j in mineList:
+                    for s,t in ship.getPositionList():
+                        if( (i==s and j==t) or ((i+1==s) and j==t) or ((i-1==s) and j==t) or (i==s and (j+1)==t) or (i==s and (j-1)==t)):
+                            r = game.mineDamagedShip(ship, s, t, False)
+                            if r ==1:
                                 moveValid = True
                                 removeMineList(i,j)
                                 game.removeMine(i, j)
                                 indigo = True
                                 break
-            elif backwards == False:
-                for i, j in mineList:
-                    for s,t in ship.getPositionList():
-                        if( (i==s and j==t) or ((i+1==s) and j==t) or ((i-1==s) and j==t) or (i==s and (j+1)==t) or (i==s and (j-1)==t)):
-                            print "eqeual hit"
-                            print s,t
-                            game.mineDamagedShip(ship, s, t, False)
-                            moveValid = True
-                            removeMineList(i,j)
-                            game.removeMine(i, j)
-                            indigo = True
-                            break
         if orientation == "S":
             if backwards == True:
                 for i, j in mineList:
-                    print "mine"
-                    print i,j
                     for s,t in ship.getPositionList():
                         if((i==s and j==t) or ((i+1==s) and j==t) or ((i-1==s) and j==t) or (i==s and (j+1)==t) or (i==s and (j-1)==t)):   
-                            game.mineDamagedShip(ship, s, t, True)
-                            moveValid = True
-                            removeMineList(i,j)
-                            game.removeMine(i,j)
-                            indigo = True
-                            break
+                            r = game.mineDamagedShip(ship, s, t, True)
+                            if r == 1:
+                                moveValid = True
+                                removeMineList(i,j)
+                                game.removeMine(i,j)
+                                indigo = True
+                                break
                 if(indigo == False):
-                    print "CHECKING"
                     for i, j in mineList:
-                        print i,j
                         for s,t in ship.getPositionList():
-                            print "here iti s:"
-                            print (s+1), i 
-
-
                             if((i==s and j==t) or ((i+1==s) and j==t) or ((i-1==s) and j==t) or (i==s and (j+1)==t) or (i==s and (j-1)==t)):
-                                print "eqeual N E S W"
-                                print i,j
                                 t = game.mineDamagedShip(ship, s, t, True)
                                 if t==1:
-                                    ship.destroyShip(self.gameBoard)
-                                    self.updateVisibility()
-                                    self.updateVisibilityRadar()
+                                    moveValid = True
+                                    removeMineList(i,j)
+                                    game.removeMine(i, j)
+                                    indigo = True
+                                    break
+            elif backwards == False:
+                for i, j in mineList:
+                    for s,t in ship.getPositionList():
+                        if( (i==s and j==t) or ((i+1==s) and j==t) or ((i-1==s) and j==t) or (i==s and (j+1)==t) or (i==s and (j-1)==t)):
+                            r = game.mineDamagedShip(ship, s, t, False)
+                            if r == 1:
                                 moveValid = True
                                 removeMineList(i,j)
                                 game.removeMine(i, j)
                                 indigo = True
                                 break
-            elif backwards == False:
-                for i, j in mineList:
-                    for s,t in ship.getPositionList():
-                        if( (i==s and j==t) or ((i+1==s) and j==t) or ((i-1==s) and j==t) or (i==s and (j+1)==t) or (i==s and (j-1)==t)):
-                            print "eqeual hit"
-                            print s,t
-                            game.mineDamagedShip(ship, s, t, False)
-                            moveValid = True
-                            removeMineList(i,j)
-                            game.removeMine(i, j)
-                            indigo = True
-                            break
 
     if indigo:
         backwards == False
@@ -2259,6 +2239,328 @@ def checkMineDamage(ship,x,y, isTurning, screen, backwards):
     else:
         backwards == False
         return 0
+
+
+
+def getMineDamagedCoordinates(ship,x,y, isTurning, screen, backwards):
+    indigo = False
+    orientation = ship.getOrientation()
+    tuple = ()
+    if isTurning:
+        for i, j in mineList:
+            for s,t in ship.getPositionBetween(x,y):
+                if((i+1==s) and j==t):
+                    tuple = (i+1, j)
+                    indigo = True
+                    break
+                elif((i-1==s) and j==t and indigo == False):
+                    tuple = (i-1, j)
+                    indigo = True
+                    break
+                elif (i==s and (j+1)==t and indigo == False):
+                    tuple = (i, j+1)
+                    indigo = True
+                    break
+                elif (i==s and (j-1)==t and indigo == False):
+                    tuple = (i, j-1)
+                    indigo = True
+                    break
+                elif((i==s and j==t) and indigo == False):
+                    tuple = (i,j)
+                    indigo = True
+                    break
+    else:    
+        if orientation == "E":
+            if backwards == True:
+                for i, j in mineList:
+                    for s,t in ship.getPositionBetween(x,y):
+                        if((i+1==s) and j==t):
+                            tuple = (i+1, j)
+                            indigo = True
+                            break
+                        elif((i-1==s) and j==t and indigo == False):
+                            tuple = (i-1, j)
+                            indigo = True
+                            break
+                        elif (i==s and (j+1)==t and indigo == False):
+                            tuple = (i, j+1)
+                            indigo = True
+                            break
+                        elif (i==s and (j-1)==t and indigo == False):
+                            tuple = (i, j-1)
+                            indigo = True
+                            break
+                        elif((i==s and j==t) and indigo == False):
+                            tuple = (i,j)
+                            indigo = True
+                            break
+                if(indigo == False):
+                    for i, j in mineList:
+                        for s,t in ship.getPositionBetween(x,y):
+                            if((i+1==s) and j==t):
+                                tuple = (i+1, j)
+                                indigo = True
+                                break
+                            elif((i-1==s) and j==t and indigo == False):
+                                tuple = (i-1, j)
+                                indigo = True
+                                break
+                            elif (i==s and (j+1)==t and indigo == False):
+                                tuple = (i, j+1)
+                                indigo = True
+                                break
+                            elif (i==s and (j-1)==t and indigo == False):
+                                tuple = (i, j-1)
+                                indigo = True
+                                break
+                            elif((i==s and j==t) and indigo == False):
+                                tuple = (i,j)
+                                indigo = True
+                                break
+                            
+            elif backwards == False:
+                for i, j in mineList:
+                    for s,t in ship.getPositionBetween(x,y):
+                        if((i+1==s) and j==t):
+                            tuple = (i+1, j)
+                            indigo = True
+                            break
+                        elif((i-1==s) and j==t and indigo == False):
+                            tuple = (i-1, j)
+                            indigo = True
+                            break
+                        elif (i==s and (j+1)==t and indigo == False):
+                            tuple = (i, j+1)
+                            indigo = True
+                            break
+                        elif (i==s and (j-1)==t and indigo == False):
+                            tuple = (i, j-1)
+                            indigo = True
+                            break
+                        elif((i==s and j==t) and indigo == False):
+                            tuple = (i,j)
+                            indigo = True
+                            break
+                        
+
+        if orientation == "W":
+            if backwards == True:
+                for i, j in mineList:
+                    for s,t in ship.getPositionBetween(x,y):
+                        if((i+1==s) and j==t):
+                            tuple = (i+1, j)
+                            indigo = True
+                            break
+                        elif((i-1==s) and j==t and indigo == False):
+                            tuple = (i-1, j)
+                            indigo = True
+                            break
+                        elif (i==s and (j+1)==t and indigo == False):
+                            tuple = (i, j+1)
+                            indigo = True
+                            break
+                        elif (i==s and (j-1)==t and indigo == False):
+                            tuple = (i, j-1)
+                            indigo = True
+                            break
+                        elif((i==s and j==t) and indigo == False):
+                            tuple = (i,j)
+                            indigo = True
+                            break
+                if(indigo == False):
+                    for i, j in mineList:
+                        for s,t in ship.getPositionBetween(x,y):
+                            if((i+1==s) and j==t):
+                                tuple = (i+1, j)
+                                indigo = True
+                                break
+                            elif((i-1==s) and j==t and indigo == False):
+                                tuple = (i-1, j)
+                                indigo = True
+                                break
+                            elif (i==s and (j+1)==t and indigo == False):
+                                tuple = (i, j+1)
+                                indigo = True
+                                break
+                            elif (i==s and (j-1)==t and indigo == False):
+                                tuple = (i, j-1)
+                                indigo = True
+                                break
+                            elif((i==s and j==t) and indigo == False):
+                                tuple = (i,j)
+                                indigo = True
+                                break
+            elif backwards == False:
+                for i, j in mineList:
+                    for s,t in ship.getPositionBetween(x,y):
+                        if((i+1==s) and j==t):
+                            tuple = (i+1, j)
+                            indigo = True
+                            break
+                        elif((i-1==s) and j==t and indigo == False):
+                            tuple = (i-1, j)
+                            indigo = True
+                            break
+                        elif (i==s and (j+1)==t and indigo == False):
+                            tuple = (i, j+1)
+                            indigo = True
+                            break
+                        elif (i==s and (j-1)==t and indigo == False):
+                            tuple = (i, j-1)
+                            indigo = True
+                            break
+                        elif((i==s and j==t) and indigo == False):
+                            tuple = (i,j)
+                            indigo = True
+                            break
+
+        if orientation == "N":
+            if backwards == True:
+                for i, j in mineList:
+                    for s,t in ship.getPositionBetween(x,y):
+                        if((i+1==s) and j==t):
+                            tuple = (i+1, j)
+                            indigo = True
+                            break
+                        elif((i-1==s) and j==t and indigo == False):
+                            tuple = (i-1, j)
+                            indigo = True
+                            break
+                        elif (i==s and (j+1)==t and indigo == False):
+                            tuple = (i, j+1)
+                            indigo = True
+                            break
+                        elif (i==s and (j-1)==t and indigo == False):
+                            tuple = (i, j-1)
+                            indigo = True
+                            break
+                        elif((i==s and j==t) and indigo == False):
+                            tuple = (i,j)
+                            indigo = True
+                            break
+                if(indigo == False):
+                    for i, j in mineList:
+                        for s,t in ship.getPositionBetween(x,y):
+                            if((i+1==s) and j==t):
+                                tuple = (i+1, j)
+                                indigo = True
+                                break
+                            elif((i-1==s) and j==t and indigo == False):
+                                tuple = (i-1, j)
+                                indigo = True
+                                break
+                            elif (i==s and (j+1)==t and indigo == False):
+                                tuple = (i, j+1)
+                                indigo = True
+                                break
+                            elif (i==s and (j-1)==t and indigo == False):
+                                tuple = (i, j-1)
+                                indigo = True
+                                break
+                            elif((i==s and j==t) and indigo == False):
+                                tuple = (i,j)
+                                indigo = True
+                                break
+            elif backwards == False:
+                for i, j in mineList:
+                    for s,t in ship.getPositionBetween(x,y):
+                        if((i+1==s) and j==t):
+                            tuple = (i+1, j)
+                            indigo = True
+                            break
+                        elif((i-1==s) and j==t and indigo == False):
+                            tuple = (i-1, j)
+                            indigo = True
+                            break
+                        elif (i==s and (j+1)==t and indigo == False):
+                            tuple = (i, j+1)
+                            indigo = True
+                            break
+                        elif (i==s and (j-1)==t and indigo == False):
+                            tuple = (i, j-1)
+                            indigo = True
+                            break
+                        elif((i==s and j==t) and indigo == False):
+                            tuple = (i,j)
+                            indigo = True
+                            break
+        if orientation == "S":
+            if backwards == True:
+                for i, j in mineList:
+                    for s,t in ship.getPositionBetween(x,y):
+                        if((i+1==s) and j==t):
+                            tuple = (i+1, j)
+                            indigo = True
+                            break
+                        elif((i-1==s) and j==t and indigo == False):
+                            tuple = (i-1, j)
+                            indigo = True
+                            break
+                        elif (i==s and (j+1)==t and indigo == False):
+                            tuple = (i, j+1)
+                            indigo = True
+                            break
+                        elif (i==s and (j-1)==t and indigo == False):
+                            tuple = (i, j-1)
+                            indigo = True
+                            break
+                        elif((i==s and j==t) and indigo == False):
+                            tuple = (i,j)
+                            indigo = True
+                            break
+                if(indigo == False):
+                    for i, j in mineList:
+                        for s,t in ship.getPositionBetween(x,y):
+                            if((i+1==s) and j==t):
+                                tuple = (i+1, j)
+                                indigo = True
+                                break
+                            elif((i-1==s) and j==t and indigo == False):
+                                tuple = (i-1, j)
+                                indigo = True
+                                break
+                            elif (i==s and (j+1)==t and indigo == False):
+                                tuple = (i, j+1)
+                                indigo = True
+                                break
+                            elif (i==s and (j-1)==t and indigo == False):
+                                tuple = (i, j-1)
+                                indigo = True
+                                break
+                            elif((i==s and j==t) and indigo == False):
+                                tuple = (i,j)
+                                indigo = True
+                                break
+            elif backwards == False:
+                for i, j in mineList:
+                    for s,t in ship.getPositionBetween(x,y):
+                        if((i+1==s) and j==t):
+                            tuple = (i+1, j)
+                            indigo = True
+                            break
+                        elif((i-1==s) and j==t and indigo == False):
+                            tuple = (i-1, j)
+                            indigo = True
+                            break
+                        elif (i==s and (j+1)==t and indigo == False):
+                            tuple = (i, j+1)
+                            indigo = True
+                            break
+                        elif (i==s and (j-1)==t and indigo == False):
+                            tuple = (i, j-1)
+                            indigo = True
+                            break
+                        elif((i==s and j==t) and indigo == False):
+                            tuple = (i,j)
+                            indigo = True
+                            break
+
+    if indigo:
+        backwards == False
+        return tuple
+    else:
+        backwards == False
+        return tuple
     
 global pList
 def drawShip(surface, ship, x, y, rotation, game,screen):
