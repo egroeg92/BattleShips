@@ -22,7 +22,7 @@ from tkFileDialog import askopenfilename
 
 FPS = 30
 WINDOWWIDTH = 800
-WINDOWHEIGHT = 750
+WINDOWHEIGHT = 700
 
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
@@ -173,8 +173,14 @@ def start(clientsocket,opp,user,un):
             
             if 'click' in buttonLoad.handleEvent(event) and ready == False:
                 print "load"
+                filename = 'hello'
                 Tk().withdraw() 
                 filename = askopenfilename()
+                
+                print filename == ''
+                if filename == '':
+                    filename = 'HELLO'
+                    
                 if(filename[-4]+filename[-3]+filename[-2]+filename[-1] != '.bsh'):
                     print 'not a Name'
                     label = FONT.render("Wrong file extension - can only load .bsh", 1, (255,255,0))

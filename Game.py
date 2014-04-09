@@ -65,7 +65,7 @@ class Game(object):
         
         
         self.updateVisibility()
-        
+        self.updateVisibilityRadar
     #?
     def randomizeReef(self,corallist):
         
@@ -855,6 +855,8 @@ class Game(object):
                         if sum(health) == 0:
                             o.destroyShip(self.gameBoard)
                             self.updateVisibility()
+                            
+                            self.updateVisibilityRadar()
                             continue
     
                         o.updateSpeed()                        
@@ -866,7 +868,7 @@ class Game(object):
                 
                 
         self.updateVisibility()
-
+        self.updateVisibilityRadar()
     def updateVisibilityRadar(self):
         radarList = []
         for ship in self.player1.getShipList():

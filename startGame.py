@@ -250,7 +250,7 @@ def listener(clientsocket,screen):
                 string = 'Mine exploded at '+str(x)+ ' '+str(y)
 
                 game.getBoard().setNot(x,y,screen)
-                updateBoard(game.getBoard(),screen, turn,string)
+                updateBoard(game.getBoard(),screen, turn)
                 message = string
 
 
@@ -466,11 +466,12 @@ def listener(clientsocket,screen):
         elif dataList[0] == 'Save':
             print 'opSaved ', dataList[1]
             savefile = dataList[1]
+            pickle.dump(game,open('savedGames/'+savefile+".bsh","wb"))
 
-            if Player1:
-                pickle.dump(game,open('savedGames/'+savefile+".bsh","wb"))
-            else:
-                pickle.dump(game,open('savedGames2/'+savefile+".bsh","wb"))
+            # if Player1:
+            #     pickle.dump(game,open('savedGames/'+savefile+".bsh","wb"))
+            # else:
+            #     pickle.dump(game,open('savedGames2/'+savefile+".bsh","wb"))
 
 
             updateBoard(game.getBoard(),screen, turn)
@@ -648,10 +649,11 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
             updateBoard(game.getBoard(),screen, turn)
             message = ''
         else:
-            if(Player1):
-                l = 'savedGames/'+loadGame 
-            else:
-                l = 'savedGames2/'+loadGame
+            l = 'savedGames/'+loadGame 
+            # if(Player1):
+            #     l = 'savedGames/'+loadGame 
+            # else:
+            #     l = 'savedGames2/'+loadGame
             game = pickle.load(open(l,"rb"))
             shiplist = []
             op_shiplist = []
@@ -864,35 +866,37 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
 ########################################################  
 
         for event in pygame.event.get():
-            if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_s:
-                        print 'save'
-                        game.getCurrentPlayer
-                        if Player1:
-                            pickle.dump(game,open("savedGames/savedGame.bsh","wb"))
-                        else:
-                            pickle.dump(game,open("savedGames2/savedGame.bsh","wb"))
-                            
-                    if event.key == pygame.K_l:
-                        if Player1:
-                            game = pickle.load(open("savedGames/savedGame.bsh","rb"))
-                        else:
-                            game = pickle.load(open("savedGames2/savedGame.bsh","rb"))
-                        print turn
-                        print Player1
-                        print shiplist
-                        del shiplist
-                        del op_shiplist
-                        
-                        shiplist = game.getCurrentPlayer().getShipList()
-                        op_shiplist = game.getOpponent().getShipList()
-                        
-                        for s in shiplist:
-                            print s.getPositionList()
-                        for s in op_shiplist:
-                            print s.getPositionList()
+            # if event.type == pygame.KEYDOWN:
+                    # if event.key == pygame.K_s:
+                    #     print 'save'
+                    #     game.getCurrentPlayer
 
-                        game.getCurrentPlayer().getUsername()
+                    #     pickle.dump(game,open("savedGames/savedGame.bsh","wb"))
+                    #     if Player1:
+                    #         pickle.dump(game,open("savedGames/savedGame.bsh","wb"))
+                    #     else:
+                    #         pickle.dump(game,open("savedGames2/savedGame.bsh","wb"))
+                            
+                    # if event.key == pygame.K_l:
+                    #     if Player1:
+                    #         game = pickle.load(open("savedGames/savedGame.bsh","rb"))
+                    #     else:
+                    #         game = pickle.load(open("savedGames2/savedGame.bsh","rb"))
+                    #     print turn
+                    #     print Player1
+                    #     print shiplist
+                    #     del shiplist
+                    #     del op_shiplist
+                        
+                    #     shiplist = game.getCurrentPlayer().getShipList()
+                    #     op_shiplist = game.getOpponent().getShipList()
+                        
+                    #     for s in shiplist:
+                    #         print s.getPositionList()
+                    #     for s in op_shiplist:
+                    #         print s.getPositionList()
+
+                    #     game.getCurrentPlayer().getUsername()
             ## set isSelected to True if a ship isSelected
 
             isKamikaze = False;
@@ -1919,10 +1923,14 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                     pygame.draw.rect(screen, GRAY, [670, 350, 550, 300])
                     screen.blit(FONT.render("Enter a file name (don't include extension):",1,WHITE),(750,420))
                     savefile = textbox2.start(screen," ")
-                    if Player1:
-                        pickle.dump(game,open('savedGames/'+savefile+".bsh","wb"))
-                    else:
-                        pickle.dump(game,open('savedGames2/'+savefile+".bsh","wb"))
+                    
+                    pickle.dump(game,open('savedGames/'+savefile+".bsh","wb"))
+                    
+                    # if Player1:
+                    #     pickle.dump(game,open('savedGames/'+savefile+".bsh","wb"))
+                    
+                    # else:
+                    #     pickle.dump(game,open('savedGames2/'+savefile+".bsh","wb"))
 
                     screen.fill(GRAY)
                     updateBoard(game.getBoard(),screen,turn)
@@ -2082,9 +2090,6 @@ def updateBoard(gameBoard,screen, turn):
     drawMessagePanel(screen, turn)
 
     global message
-
-
-    print message
 
     if (turnType == "fire"):
         # screen.fill(GRAY);
