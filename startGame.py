@@ -38,13 +38,23 @@ FONT = pygame.font.SysFont("Arial", 14)
 TITLEFONT = pygame.font.SysFont("Arial",20)
 d = 15
 
+global blank
+blank = FONT.render("", 1, BLACK)
+mineexplode = FONT.render("Mine exploded", 1, BLACK)
+yourturn = FONT.render("Your turn", 1, BLACK)
+oppturn = FONT.render("Opponent turn", 1, BLACK)
+
+
 def drawMessagePanel(screen, turn):
     
     if turn:
         color = pygame.Color(194, 242, 221) #green
+        screen.blit(yourturn, (200, WINDOWHEIGHT - 100))        
+
     else:
         color = pygame.Color(250, 200, 200) #red
-    
+        screen.blit(oppturn, (200, WINDOWHEIGHT - 100))
+
     pygame.draw.rect(screen, color, [670, 10,550, 100])
 
 def drawStatPanel(screen, shiplist, op_shiplist):
@@ -155,6 +165,7 @@ def listener(clientsocket,screen):
     global reefReq
 
     global turnType
+    global message
 
     shiplist = game.getCurrentPlayer().getShipList()
     op_shiplist = game.getOpponent().getShipList()
@@ -201,14 +212,17 @@ def listener(clientsocket,screen):
 
             ship.setSelected(True)
             
-
+            string = ''
             if vis == 'True':
                 if (setKa == 'True'):
                     game.detonateKamikaze()
+                    string = 'Kamikaze attack at ' + (str(x)) + ' '+str(y)
+                    game.getBoard.setNot(x,y,screen)
 
                 game.moveShip(x,y,True)
                 game.getBoard().setNot(-1,-1,screen)
                 updateBoard(game.getBoard(),screen, turn)
+                message = string
             else:
                 game.moveShip(x,y,False)
                 
@@ -216,10 +230,18 @@ def listener(clientsocket,screen):
                 notifier = FONT.render(string, 1, (255,255,255))
                 screen.blit(notifier, (200, WINDOWHEIGHT - 100))
                 game.getBoard().setNot(x,y,screen)
-                updateBoard(game.getBoard(),screen, turn)
+                updateBoard(game.getBoard(),Screen, turn,string)
+                message = string
 
             if mine == 'True':
-                checkMineDamage(ship, x, y, False, screen, backwards)
+                minhit = checkMineDamage(ship, x, y, 99, screen, backwards)
+                x = minhit[0]
+                y = minhit[1]
+                string = 'Mine exploded at '+str(x)+ ' '+str(y)
+
+                game.getBoard().setNot(x,y,screen)
+                updateBoard(game.getBoard(),Screen, turn,string)
+                message = string
 
 
             ship.setSelected(False)
@@ -238,7 +260,6 @@ def listener(clientsocket,screen):
             reeflist = reeflist.replace('),(',')||(')
             reeflist = reeflist.split('||')
                 
-            print "RECEIVED ",reeflist,len(reeflist)
             l = []
             for i in reeflist:
                 z = i.replace('(','')
@@ -253,6 +274,7 @@ def listener(clientsocket,screen):
 
             screen.fill(GRAY);
             updateBoard(game.getBoard(),screen, turn)
+            message = string
             reefReq = True
             turnType = "reef"
 
@@ -267,6 +289,7 @@ def listener(clientsocket,screen):
             ship = op_shiplist[int(dataList[1])]
             game.repairShip(ship)
             updateBoard(game.getBoard(),screen, turn)
+            message = 'Repaired'
             turn = True
             game.setTurn(True)
 
@@ -280,7 +303,13 @@ def listener(clientsocket,screen):
             mine = dataList[5]
 
             if mine == 'True':
-                minehit = checkMineDamage(ship,i,j, True, screen, sjop)
+                minehit = checkMineDamage(ship,1,1, rot, screen, False)
+                string = "Hit mine at "+ str(minehit[0])+' '+str(minehit[1])
+                game.getBoard().setNot(minehit[0],minehit[1],screen)
+                updateBoard(game.getBoard(),Screen, turn)
+                message = string
+
+
 
             else:
                 if degree =='True':
@@ -288,14 +317,17 @@ def listener(clientsocket,screen):
                         game.rotate(ship,rot,True,True)
                         game.getBoard().setNot(-1,-1,screen)
                         updateBoard(game.getBoard(),screen, turn)
+                        message = ''
                     else:
                         game.rotate(ship,rot,True,False)
-                        string =  'collision at '+ str(x) +' ' +str(y)
+                        string =  'collision at '+ str(ship.getPositionList()[0][0]) +' ' +str(ship.getPositionList()[0][1])
                         notifier = FONT.render(string, 1, (255,255,255))
+                        print string
                         # listbox.insert(END, string)
                         screen.blit(notifier, (200, WINDOWHEIGHT - 100))
-                        game.getBoard().setNot(x,y,screen)
-                        updateBoard(game.getBoard(),screen, turn)
+                        game.getBoard().setNot(ship.getPositionList()[0][0],ship.getPositionList()[0][1],screen)
+                        updateBoard(game.getBoard(),Screen, turn)
+                        message = string
 
 
 
@@ -307,12 +339,14 @@ def listener(clientsocket,screen):
                         game.rotate(ship,rot,False,True)
                     else:
                         game.rotate(ship,rot,False,False)
-                        string =  'collision at '+ str(x)  +' ' +str(y)
+                        string =  'collision at '+ str(ship.getPositionList()[0][0])  +' ' +str(ship.getPositionList()[0][1])
                         notifier = FONT.render(string, 1, (255,255,255))
+                        print 's ' , string
                         # listbox.insert(END, string)
                         screen.blit(notifier, (200, WINDOWHEIGHT - 100))
-                        updateBoard(game.getBoard(),screen, turn)
-                        game.getBoard().setNot(x,y,screen)
+                        updateBoard(game.getBoard(),Screen, turn)
+                        message = string
+                        game.getBoard().setNot(ship.getPositionList()[0][0],ship.getPositionList()[0][1],screen)
 
 
 
@@ -339,6 +373,7 @@ def listener(clientsocket,screen):
             screen.blit(notifier, (200, WINDOWHEIGHT - 100))
             game.getBoard().setNot(x,y,screen)
             updateBoard(game.getBoard(),screen, turn)
+            message = resultString
 
             turn = True
             game.setTurn(True)
@@ -365,6 +400,8 @@ def listener(clientsocket,screen):
             screen.blit(notifier, (200, WINDOWHEIGHT - 100))
             game.getBoard().setNot(x,y,screen)
             updateBoard(game.getBoard(),screen, turn)
+            message = resultString
+
 
             turn = True
             game.setTurn(True)
@@ -394,6 +431,8 @@ def listener(clientsocket,screen):
             screen.blit(notifier, (200, WINDOWHEIGHT - 100))
             game.getBoard().setNot(x,y,screen)
             updateBoard(game.getBoard(),screen, turn)
+            message = resultString
+
 
             turn = True
             game.setTurn(True)
@@ -424,6 +463,8 @@ def listener(clientsocket,screen):
                 pickle.dump(game,open('savedGames2/'+savefile+".bsh","wb"))
 
 
+            updateBoard(game.getBoard(),screen, turn)
+            message = 'Game Saved as '+savefile+'.bsh'
 
 
 
@@ -463,6 +504,8 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
     positiontext1 = FONT.render("(You can only position ships on your side of the board.)", 1, BLACK)
 
 
+    global message
+    message = ''
     global win
     win = False
     global offline
@@ -589,6 +632,7 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
             game.setCoral(l)
             screen.fill(GRAY);
             updateBoard(game.getBoard(),screen, turn)
+            message = ''
         else:
             if(Player1):
                 l = 'savedGames/'+loadGame 
@@ -625,6 +669,7 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
 
         screen.fill(GRAY);
         updateBoard(game.getBoard(),screen, True)
+        message = ''
     #     if not offline:
     #         clientsocket.send("Reef:"+str(corallist))
     # else:
@@ -1014,8 +1059,8 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                                                 q = y
 
                                                 MLIST = getMineDamagedCoordinates(ship, x, y, False, screen, backwards) 
+
                                                 if(len(MLIST) != 0):                     
-                                                    
                                                     p = MLIST[0]            
                                                     q = MLIST[1]            
                                                     game.moveShip(p,q, True)            
@@ -1029,7 +1074,13 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                                                     game.detonateKamikaze()
 
                                                 if not offline:
+                                                    minehit = checkMineDamage(ship, x, y, 99, screen, backwards)
 
+                                                    print mine
+                                                    if(minehit != (-1,-1)):
+                                                        mine = True
+
+                                                    print "MINE ,",mine
                                                     clientsocket.send('Move:'+str(shiplist.index(ship))+':'+str(p)+':'+str(q)+':True:'+str(armKamikaze)+':'+str(mine)+':'+str(backwards))
                                                     turn = False
                                                     game.setTurn(False)
@@ -1043,9 +1094,16 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                                                 # screen.blit(notifier, (200, WINDOWHEIGHT - 100))
                                                 
                                                 updateBoard(game.getBoard(),screen, turn)
+                                                message = string
 
                                                 print "CO",colx,coly
                                                 if not offline:
+                                                    minehit = checkMineDamage(ship, x, y, 99, screen, backwards)
+
+                                                    print mine
+                                                    if(minehit != (-1,-1)):
+                                                        mine = True
+                                                    
                                                     clientsocket.send('Move:'+str(shiplist.index(ship))+':'+str(colx)+':'+str(coly)+':False:False'+':'+str(mine)+':'+str(backwards))
                                                     turn = False
                                                     game.setTurn(False)
@@ -1057,7 +1115,11 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                                                 p = x
                                                 q = y
 
-                                                MLIST = getMineDamagedCoordinates(ship, x, y, False, screen, backwards) 
+                                                MLIST = getMineDamagedCoordinates(ship, x, y, False, screen, backwards)
+                                                minehit = checkMineDamage(ship, x, y, 99, screen, backwards)
+                                                if(minehit != (-1,-1)):
+                                                    mine = True
+ 
                                                 if(len(MLIST) != 0):                     
                                                     
                                                     p = MLIST[0]            
@@ -1070,6 +1132,12 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                                                     game.moveShip(x, y, True)
                                                 
                                                 if not offline:
+                                                    minehit = checkMineDamage(ship, x, y, 99, screen, backwards)
+
+                                                    print mine
+                                                    if(minehit != (-1,-1)):
+                                                        mine = True
+                                                    
                                                     print 'sent p,q',p,q
                                                     clientsocket.send('Move:'+str(shiplist.index(ship))+':'+str(p)+':'+str(q)+':True:False'+':'+str(mine)+':'+str(backwards))
                                                     turn = False
@@ -1083,10 +1151,17 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                                                 screen.blit(notifier, (200, WINDOWHEIGHT - 100))
                                                 
 
-                                                updateBoard(game.getBoard(),screen, turn)
+                                                updateBoard(game.getBoard(),Screen, turn)
+                                                message = string
 
                                                 print "CO",colx,coly
                                                 if not offline:
+                                                    minehit = checkMineDamage(ship, x, y, 99, screen, backwards)
+
+                                                    print mine
+                                                    if(minehit != (-1,-1)):
+                                                        mine = True
+                                                    
                                                     clientsocket.send('Move:'+str(shiplist.index(ship))+':'+str(colx)+':'+str(coly)+':False:False'+':'+str(mine)+':'+str(backwards))
                                                     turn = False
                                                     game.setTurn(False)
@@ -1109,6 +1184,12 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                                                     game.moveShip(x, y, True)
 
                                                 if not offline:
+                                                    minehit = checkMineDamage(ship, x, y, 99, screen, backwards)
+
+                                                    print mine
+                                                    if(minehit != (-1,-1)):
+                                                        mine = True
+                                                    
                                                     clientsocket.send('Move:'+str(shiplist.index(ship))+':'+str(p)+':'+str(q)+':True:False'+':'+str(mine)+':'+str(backwards))
                                                     turn = False
                                                     game.setTurn(False)
@@ -1120,9 +1201,16 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                                                 notifier = FONT.render(string, 1, (255,255,255))
                                                 screen.blit(notifier, (200, WINDOWHEIGHT - 100))
                                                 
-                                                updateBoard(game.getBoard(),screen, turn)
+                                                updateBoard(game.getBoard(),Screen, turn)
+                                                message = string
 
                                                 if not offline:
+                                                    minehit = checkMineDamage(ship, x, y, 99, screen, backwards)
+
+                                                    print mine
+                                                    if(minehit != (-1,-1)):
+                                                        mine = True
+                                                    
                                                     clientsocket.send('Move:'+str(shiplist.index(ship))+':'+str(colx)+':'+str(coly)+':False:False'+':'+str(mine)+':'+str(backwards))
                                                     turn = False
                                                     game.setTurn(False)
@@ -1131,7 +1219,12 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                                         if x >= 0 and x <= 29 and y >= 0 and y <= 29-ship.getSize():
                                             if VISIBLE:
                                                 #print "move"
-                                                MLIST = getMineDamagedCoordinates(ship, x, y, False, screen, backwards) 
+                                                p = x
+                                                q = y
+                                                MLIST = getMineDamagedCoordinates(ship, x, y, False, screen, backwards)
+                                                minehit = checkMineDamage(ship, x, y, 99, screen, backwards)
+                                                if(minehit != (-1,-1)):
+                                                    mine = True 
                                                 if(len(MLIST) != 0):                     
                                                     p = MLIST[0]            
                                                     q = MLIST[1]            
@@ -1140,6 +1233,12 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                                                 else:           
                                                     game.moveShip(x, y, True)
                                                 if not offline:
+                                                    minehit = checkMineDamage(ship, x, y, 99, screen, backwards)
+
+                                                    print mine
+                                                    if(minehit != (-1,-1)):
+                                                        mine = True
+                                                    
                                                     clientsocket.send('Move:'+str(shiplist.index(ship))+':'+str(p)+':'+str(q)+':True:False'+':'+str(mine)+':'+str(backwards))
                                                     turn = False
                                                     game.setTurn(False)
@@ -1152,14 +1251,22 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                                                 notifier = FONT.render(string, 1, (255,255,255))
                                                 screen.blit(notifier, (200, WINDOWHEIGHT - 100))
                                                 
-                                                updateBoard(game.getBoard(),screen, turn)
+                                                updateBoard(game.getBoard(),Screen, turn)
+                                                message = string
 
                                             if not offline:
+                                                minehit = checkMineDamage(ship, x, y, 99, screen, backwards)
+
+                                                print mine
+                                                if(minehit != (-1,-1)):
+                                                    mine = True
+                                                
                                                 clientsocket.send('Move:'+str(shiplist.index(ship))+':'+str(colx)+':'+str(coly)+':False:False'+':'+str(mine)+':'+str(backwards))
                                                 turn = False
                                                 game.setTurn(False)
-                                #CHECK MINE
-                                minehit = checkMineDamage(ship, x, y, False, screen, backwards)
+                                
+                                #CHECK MINE MOVING
+                                minehit = checkMineDamage(ship, x, y, 99, screen, backwards)
                                 backwards == False
                                 ship.setSelected(False)
                                 global turnType
@@ -1363,15 +1470,15 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                                 i, j = event.pos
                                 i = (i - d) / 21
                                 j = (j - 10) / 21
-                                sjop = False
-
                                 #hit
 
-                                minehit = checkMineDamage(ship,i,j, True, screen, sjop)
-                                if minehit == 1:            
+                                minehit = checkMineDamage(ship,i,j, rot, screen, False)
+                                if minehit != (-1,-1):            
                                     moveValid = False
                                     if not offline:
                                         clientsocket.send('Turn:'+str(shiplist.index(ship))+':'+str(rot)+':True:True:True')
+                                        game.setTurn(False)
+                                        turn = False
                                 if moveValid:
                                     x, y = event.pos
                                     x = (x - d) / 21
@@ -1394,7 +1501,8 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                                             notifier = FONT.render(string, 1, (255,255,255))
                                             screen.blit(notifier, (200, WINDOWHEIGHT - 100))
                                             
-                                            updateBoard(game.getBoard(),screen, turn)
+                                            updateBoard(game.getBoard(),Screen, turn)
+                                            message = string
 
                                             if not offline:
                                                 clientsocket.send('Turn:'+str(shiplist.index(ship))+':'+str(rot)+':True:False:False')
@@ -1419,7 +1527,8 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                                             screen.blit(notifier, (200, WINDOWHEIGHT - 100))
                                             
 
-                                            updateBoard(game.getBoard(),screen, turn)
+                                            updateBoard(game.getBoard(),Screen, turn)
+                                            message = string
 
                                             if not offline:
                                                 clientsocket.send('Turn:'+str(shiplist.index(ship))+':'+str(rot)+':True:False:False')
@@ -1473,6 +1582,7 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                                     screen.blit(notifier, (200, WINDOWHEIGHT - 100))
                                     
                                     updateBoard(game.getBoard(),screen, turn)
+                                    message = resultString
                                     if not offline:
                                         clientsocket.send("Cannon:"+str(shiplist.index(ship))+':'+str(x)+":"+str(y))
                                         turn = False
@@ -1529,6 +1639,7 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                                     #print resultString
                                     screen.blit(notifier, (200, WINDOWHEIGHT - 100))
                                     updateBoard(game.getBoard(),screen, turn)
+                                    message = resultString
                                     if not offline:
                                         clientsocket.send("HCannon:"+str(shiplist.index(ship))+':'+str(x)+":"+str(y))
                                         turn = False
@@ -1759,6 +1870,7 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
 
                     screen.fill(GRAY);
                     updateBoard(game.getBoard(),screen,turn)
+                    message = ''
 
                 elif turnType == "request":
                     screen.fill(GRAY)
@@ -1767,6 +1879,7 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                     buttonPositionShips.draw(screen)
                     # turnType = "position"
                     updateBoard(game.getBoard(),screen,turn)
+                    message = ''
 
                     print ("SENT CORAL "+ str(game.getCoral())) + str(len(game.getCoral()))
 
@@ -1873,6 +1986,7 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
 
                     screen.fill(GRAY)
                     updateBoard(game.getBoard(),screen,turn)
+                    message = 'Saving'
 
                     if not offline:
                         clientsocket.send("Save:"+savefile)
@@ -1904,6 +2018,7 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
 
                     game.updateRange("cannon", True)
                     updateBoard(game.getBoard(),screen, turn)
+
 
 
                 elif 'click' in buttonHeavyCannon.handleEvent(event) and turnType == 'fire' and isSelected:
@@ -2023,6 +2138,11 @@ def updateBoard(gameBoard,screen, turn):
     drawSelectedPanel(screen, shiplist)
     drawMessagePanel(screen, turn)
 
+    global message
+
+
+    print message
+
     if (turnType == "fire"):
         # screen.fill(GRAY);
         buttons = []
@@ -2074,6 +2194,18 @@ def updateBoard(gameBoard,screen, turn):
         screen.blit(positiontext1, (780, 60))
         buttonPositionShips.draw(screen)
 
+    yourturn = FONT.render("Your turn", 1, BLACK)
+    oppturn = FONT.render("Opponent turn", 1, BLACK)
+    
+    mess = FONT.render(message,1,BLACK)
+
+    if turn:
+
+        screen.blit(yourturn, (700,40))
+        screen.blit(mess,(700,50))
+    else:
+        screen.blit(oppturn, (700,40))
+        screen.blit(mess,(700,50))
 
 
 
@@ -2108,25 +2240,69 @@ def removeMineList(x,y):
     mineList.remove(tuple)
 
 def checkMineDamage(ship,x,y, isTurning, screen, backwards):
-    print "new ship position = "
-    print ship.getPositionList()
     indigo = False
     orientation = ship.getOrientation()
     shipList = ship.getPositionList()
-    
+    x = -1
+    y = -1
     #print ship.getOrientation()
     #print ship.getPositionList()
     #print isTurning
-
-    if isTurning:
-        print "turn"
+    if isTurning != 99:
+        #print x, y
+        #print ship.getPositionList()
+        #print "this is rot"
+        #print isTurning
+        #print ship.getTurnZone(isTurning)
         for i, j in mineList:
-            print "mine"
             print i,j
-            for s,t in ship.getPositionList():
-                if((i==s and j==t) or ((i+1==s) and j==t) or ((i-1==s) and j==t) or (i==s and (j+1)==t) or (i==s and (j-1)==t)):   
-                    r = game.mineDamagedShip(ship, s, t, False)
+            for s,t in ship.getTurnZone(isTurning):
+                if((i==s and j==t)):  
+                    r = game.mineDamagedShip(ship, s, t, False, True)
                     if r == 1:
+                        x = i
+                        y = j
+                        moveValid = False
+                        removeMineList(i,j)
+                        game.removeMine(i,j)
+                        indigo = True
+                        break
+                if((i+1==s) and j==t):
+                    r = game.mineDamagedShip(ship, s, t, False, True)
+                    if r == 1:
+                        x = i
+                        y = j
+                        moveValid = False
+                        removeMineList(i,j)
+                        game.removeMine(i,j)
+                        indigo = True
+                        break
+                if((i-1==s) and j==t):
+                    r = game.mineDamagedShip(ship, s, t, False, True)
+                    if r == 1:
+                        x = i
+                        y = j
+                        moveValid = False
+                        removeMineList(i,j)
+                        game.removeMine(i,j)
+                        indigo = True
+                        break
+                if(i==s and (j+1)==t):
+                    print "HERE"
+                    r = game.mineDamagedShip(ship, s, t, False, True)
+                    if r == 1:
+                        x = i
+                        y = j
+                        moveValid = False
+                        removeMineList(i,j)
+                        game.removeMine(i,j)
+                        indigo = True
+                        break
+                if (i==s and (j-1)==t):
+                    r = game.mineDamagedShip(ship, s, t, False, True)
+                    if r == 1:
+                        x = i
+                        y = j
                         moveValid = False
                         removeMineList(i,j)
                         game.removeMine(i,j)
@@ -2137,12 +2313,12 @@ def checkMineDamage(ship,x,y, isTurning, screen, backwards):
         if orientation == "E":
             if backwards == True:
                 for i, j in mineList:
-                    print "mine"
-                    print i,j
                     for s,t in ship.getPositionList():
                         if((i==s and j==t) or ((i+1==s) and j==t) or ((i-1==s) and j==t) or (i==s and (j+1)==t) or (i==s and (j-1)==t)):   
-                            r = game.mineDamagedShip(ship, s, t, True)
+                            r = game.mineDamagedShip(ship, s, t, True, False)
                             if r == 1:
+                                x = i
+                                y = j
                                 moveValid = True
                                 removeMineList(i,j)
                                 game.removeMine(i,j)
@@ -2152,8 +2328,10 @@ def checkMineDamage(ship,x,y, isTurning, screen, backwards):
                     for i, j in mineList:
                         for s,t in ship.getPositionList():
                             if((i==s and j==t) or ((i+1==s) and j==t) or ((i-1==s) and j==t) or (i==s and (j+1)==t) or (i==s and (j-1)==t)):
-                                r = game.mineDamagedShip(ship, s, t, True)
+                                r = game.mineDamagedShip(ship, s, t, True, False)
                                 if r==1:
+                                    x = i
+                                    y = j
                                     moveValid = True
                                     removeMineList(i,j)
                                     game.removeMine(i, j)
@@ -2163,8 +2341,10 @@ def checkMineDamage(ship,x,y, isTurning, screen, backwards):
                 for i, j in mineList:
                     for s,t in ship.getPositionList():
                         if( (i==s and j==t) or ((i+1==s) and j==t) or ((i-1==s) and j==t) or (i==s and (j+1)==t) or (i==s and (j-1)==t)):
-                            r = game.mineDamagedShip(ship, s, t, False)
+                            r = game.mineDamagedShip(ship, s, t, False, False)
                             if r == 1:
+                                x = i
+                                y = j
                                 moveValid = True
                                 removeMineList(i,j)
                                 game.removeMine(i, j)
@@ -2176,8 +2356,10 @@ def checkMineDamage(ship,x,y, isTurning, screen, backwards):
                 for i, j in mineList:
                     for s,t in ship.getPositionList():
                         if((i==s and j==t) or ((i+1==s) and j==t) or ((i-1==s) and j==t) or (i==s and (j+1)==t) or (i==s and (j-1)==t)):   
-                            r = game.mineDamagedShip(ship, s, t, True)
+                            r = game.mineDamagedShip(ship, s, t, True, False)
                             if r == 1:
+                                x = i
+                                y = j
                                 moveValid = True
                                 removeMineList(i,j)
                                 game.removeMine(i,j)
@@ -2187,8 +2369,10 @@ def checkMineDamage(ship,x,y, isTurning, screen, backwards):
                     for i, j in mineList:
                         for s,t in ship.getPositionList():
                             if((i==s and j==t) or ((i+1==s) and j==t) or ((i-1==s) and j==t) or (i==s and (j+1)==t) or (i==s and (j-1)==t)):
-                                t = game.mineDamagedShip(ship, s, t, True)
+                                t = game.mineDamagedShip(ship, s, t, True, False)
                                 if t==1:
+                                    x = i
+                                    y = j
                                     moveValid = True
                                     removeMineList(i,j)
                                     game.removeMine(i, j)
@@ -2198,8 +2382,10 @@ def checkMineDamage(ship,x,y, isTurning, screen, backwards):
                 for i, j in mineList:
                     for s,t in ship.getPositionList():
                         if( (i==s and j==t) or ((i+1==s) and j==t) or ((i-1==s) and j==t) or (i==s and (j+1)==t) or (i==s and (j-1)==t)):
-                            r = game.mineDamagedShip(ship, s, t, False)
+                            r = game.mineDamagedShip(ship, s, t, False, False)
                             if r == 1:
+                                x = i
+                                y = j
                                 moveValid = True
                                 removeMineList(i,j)
                                 game.removeMine(i, j)
@@ -2211,8 +2397,10 @@ def checkMineDamage(ship,x,y, isTurning, screen, backwards):
                 for i, j in mineList:
                     for s,t in ship.getPositionList():
                         if((i==s and j==t) or ((i+1==s) and j==t) or ((i-1==s) and j==t) or (i==s and (j+1)==t) or (i==s and (j-1)==t)):   
-                            r = game.mineDamagedShip(ship, s, t, True)
+                            r = game.mineDamagedShip(ship, s, t, True, False)
                             if r == 1:
+                                x = i
+                                y = j
                                 moveValid = True
                                 removeMineList(i,j)
                                 game.removeMine(i,j)
@@ -2222,8 +2410,10 @@ def checkMineDamage(ship,x,y, isTurning, screen, backwards):
                     for i, j in mineList:
                         for s,t in ship.getPositionList():
                             if((i==s and j==t) or ((i+1==s) and j==t) or ((i-1==s) and j==t) or (i==s and (j+1)==t) or (i==s and (j-1)==t)):
-                                t = game.mineDamagedShip(ship, s, t, True)
+                                t = game.mineDamagedShip(ship, s, t, True, False)
                                 if t==1:
+                                    x = i
+                                    y = j
                                     moveValid = True
                                     removeMineList(i,j)
                                     game.removeMine(i, j)
@@ -2233,8 +2423,10 @@ def checkMineDamage(ship,x,y, isTurning, screen, backwards):
                 for i, j in mineList:
                     for s,t in ship.getPositionList():
                         if( (i==s and j==t) or ((i+1==s) and j==t) or ((i-1==s) and j==t) or (i==s and (j+1)==t) or (i==s and (j-1)==t)):
-                            r = game.mineDamagedShip(ship, s, t, False)
+                            r = game.mineDamagedShip(ship, s, t, False, False)
                             if r ==1:
+                                x = i
+                                y = j
                                 moveValid = True
                                 removeMineList(i,j)
                                 game.removeMine(i, j)
@@ -2245,8 +2437,10 @@ def checkMineDamage(ship,x,y, isTurning, screen, backwards):
                 for i, j in mineList:
                     for s,t in ship.getPositionList():
                         if((i==s and j==t) or ((i+1==s) and j==t) or ((i-1==s) and j==t) or (i==s and (j+1)==t) or (i==s and (j-1)==t)):   
-                            r = game.mineDamagedShip(ship, s, t, True)
+                            r = game.mineDamagedShip(ship, s, t, True, False)
                             if r == 1:
+                                x = i
+                                y = j
                                 moveValid = True
                                 removeMineList(i,j)
                                 game.removeMine(i,j)
@@ -2256,8 +2450,10 @@ def checkMineDamage(ship,x,y, isTurning, screen, backwards):
                     for i, j in mineList:
                         for s,t in ship.getPositionList():
                             if((i==s and j==t) or ((i+1==s) and j==t) or ((i-1==s) and j==t) or (i==s and (j+1)==t) or (i==s and (j-1)==t)):
-                                t = game.mineDamagedShip(ship, s, t, True)
+                                t = game.mineDamagedShip(ship, s, t, True, False)
                                 if t==1:
+                                    x = i
+                                    y = j
                                     moveValid = True
                                     removeMineList(i,j)
                                     game.removeMine(i, j)
@@ -2267,8 +2463,10 @@ def checkMineDamage(ship,x,y, isTurning, screen, backwards):
                 for i, j in mineList:
                     for s,t in ship.getPositionList():
                         if( (i==s and j==t) or ((i+1==s) and j==t) or ((i-1==s) and j==t) or (i==s and (j+1)==t) or (i==s and (j-1)==t)):
-                            r = game.mineDamagedShip(ship, s, t, False)
+                            r = game.mineDamagedShip(ship, s, t, False, False)
                             if r == 1:
+                                x = i
+                                y = j
                                 moveValid = True
                                 removeMineList(i,j)
                                 game.removeMine(i, j)
@@ -2277,12 +2475,14 @@ def checkMineDamage(ship,x,y, isTurning, screen, backwards):
 
     if indigo:
         backwards == False
-        return 1
+        resulttuple = (x,y)
+        print "HER!!!"
+        print resulttuple
+        return resulttuple
     else:
         backwards == False
-        return 0
-
-
+        resulttuple = (-1,-1)
+        return resulttuple
 
 def getMineDamagedCoordinates(ship,x,y, isTurning, screen, backwards):
     indigo = False
@@ -2603,8 +2803,6 @@ def getMineDamagedCoordinates(ship,x,y, isTurning, screen, backwards):
     else:
         backwards == False
         return tuple
-    
-global pList
 def drawShip(surface, ship, x, y, rotation, game,screen):
     global VISIBLE
     VISIBLE = True

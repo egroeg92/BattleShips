@@ -16,7 +16,7 @@ import textbox
 import Matchup
 import startGame
 
-from Tkinter import *
+from Tkinter import Tk
 from tkFileDialog import askopenfilename
 
 
@@ -31,24 +31,7 @@ GREEN = (0, 255, 0)
 BLACK = (0, 0, 0, 0.8)
 
 FONT = pygame.font.SysFont("Arial", 14)
-master = Tk()
 
-def callback():
-    global lg 
-    lg = True
-    master.destroy()
-def never():
-    global lg
-    lg = False
-    print "never!"
-    master.destroy()
-def button():
-
-    b = Button(master, text="OK", command=callback)
-    n = Button(master,text="NEVER!", command = never)
-    b.pack(fill=BOTH,expand=1)
-    n.pack(fill=BOTH,expand =1)
-    master.mainloop()
 
 
 def listener(clientsocket,SCREEN):
@@ -70,10 +53,11 @@ def listener(clientsocket,SCREEN):
                 windowBgColor = BLACK
                 SCREEN.fill(windowBgColor)
                 
-                label = FONT.render("Set up", 1, (255,255,0))
+                label = FONT.render(" ", 1, (255,255,0))
                 msg = FONT.render("Opponent is Ready", 1, (255,255,0))
                 SCREEN.blit(msg,(150,150))
                 SCREEN.blit(label, (100, 100))
+                SCREEN.blit(pygame.image.load('images/endbg.png').convert(),(0,0))
                 buttonExit = pygbutton.PygButton((WINDOWWIDTH/2-60, 250, 120, 30), 'back')   
                 buttonStart = pygbutton.PygButton((WINDOWWIDTH/2-60, 50, 120, 30), 'start')
                 buttonExit.draw(SCREEN)
@@ -87,14 +71,10 @@ def listener(clientsocket,SCREEN):
             print 'break listener!!'
             break
         if data[:5]=='Load:':
-            button()
-            if lg:
-                clientsocket('yesLoad:'+str(o))
-                l = data.split(':')
-                loadGame = l[-1]
-                print loadGame
-            else:
-                clientsocket.send('noLoad:'+str(o))
+            l = data.split(':')
+            loadGame = l[-1]
+            print loadGame
+
         if op_ready == True and ready == True:
             listen = False
             print 'break listener,both ready'
@@ -117,8 +97,9 @@ def start(clientsocket,opp,user,un):
     pygame.display.set_caption('Set up')
 
     SCREEN.fill(windowBgColor)
-    label = FONT.render("Set up", 1, (255,255,0))
+    label = FONT.render(" ", 1, (255,255,0))
     SCREEN.blit(label, (100, 100))
+    SCREEN.blit(pygame.image.load('images/endbg.png').convert(),(0,0))
     
     buttonExit = pygbutton.PygButton((WINDOWWIDTH/2-60, 250, 120, 30), 'back')
     
@@ -178,7 +159,8 @@ def start(clientsocket,opp,user,un):
                     ready = True
                     windowBgColor = BLACK
                     SCREEN.fill(windowBgColor)
-                    msg = FONT.render("Waiting for opponent", 1, (255,255,0))
+                    SCREEN.blit(pygame.image.load('images/endbg.png').convert(),(0,0))
+                    msg = FONT.render("Waiting for opponent...", 1, (0,0,0))
                     SCREEN.blit(msg,(150,150))
                     SCREEN.blit(label, (100, 100))
                     pygame.display.update()
@@ -201,15 +183,7 @@ def start(clientsocket,opp,user,un):
                 else:
                     load = filename
                     clientsocket.send("Load:"+'/'+str(opp)+'/'+filename)
-                    data = clientsocket.recv(1024)
 
-                    if (data =='yesLoad'):
-                        label = FONT.render("Opponent accepted Load", 1, (255,255,0))
-                        SCREEN.blit(label, (100, 100))
-                    else:
-                        label = FONT.render("Opponent rejected Load", 1, (255,255,0))
-                        SCREEN.blit(label, (100, 100))
-                        load = ''
 
     
 

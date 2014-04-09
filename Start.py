@@ -51,7 +51,7 @@ def main():
                 sys.exit()
 
             if 'click' in buttonBack.handleEvent(event):
-                screen.blit(pygame.image.load('images/ivanaivazovsky.jpg').convert(),(0,0))
+                screen.blit(pygame.image.load('images/ivanaivazovsky.png').convert(),(0,0))
 
                 for b in allButtons:
                     b.draw(screen)

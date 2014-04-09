@@ -331,5 +331,5 @@ class Board:
         
         if self.x != -1 and self.y != -1:
             # print x, y
-            surface.blit(pygame.image.load('images/notifier.png').convert(),(self.x*20 + self.x*1 + d, self.y*20 + self.y*1 + 10))
+            surface.blit(pygame.image.load('images/notifier.png').convert_alpha(),(self.x*20 + self.x*1 + d, self.y*20 + self.y*1 + 10))
 

@@ -185,7 +185,7 @@ class Game(object):
                 self.updateVisibility()
                 self.updateVisibilityRadar()
 
-    def mineDamagedShip(self, ship, x, y, backwards):
+    def mineDamagedShip(self, ship, x, y, backwards, turning):
         if ship.getName() == "Kamikaze":
             health = ship.getHealth()
             health[0] = 0
@@ -196,13 +196,11 @@ class Game(object):
                 self.updateVisibilityRadar()
             return 1    
 
-        elif ship.getName() != "MineLayer" and ship.getName() != "Kamikaze": # This can be easily changed if the minelayer does not get destroyed
+        elif ship.getName() != "Kamikaze": # This can be easily changed if the minelayer does not get destroyed
             tuple = (x,y)
             index = ship.positionIndex(tuple)
             health = ship.getHealth()
             if backwards:
-                health[-1] = 0
-                health[-2] = 0
                 if(sum(health) <= 4  and ship.getName() == "Cruiser"):
                     ship.destroyShip(self.gameBoard)
                     self.updateVisibility()
@@ -223,8 +221,47 @@ class Game(object):
                     self.updateVisibility()
                     self.updateVisibilityRadar()
                     return 1
-                else:
+                elif(ship.getName() == "MineLayer"):
+                    ship.destroyShip(self.gameBoard)
+                    self.updateVisibility()
+                    self.updateVisibilityRadar()
                     return 1
+
+                else:
+                    health[-1] = 0
+                    health[-2] = 0
+                    return 1
+            elif turning:
+                if(sum(health) <= 4  and ship.getName() == "Cruiser"):
+                    ship.destroyShip(self.gameBoard)
+                    self.updateVisibility()
+                    self.updateVisibilityRadar()
+                    return 1
+                elif(sum(health) <= 2  and ship.getName() == "Destroyer"):
+                    ship.destroyShip(self.gameBoard)
+                    self.updateVisibility()
+                    self.updateVisibilityRadar()
+                    return 1
+                elif(sum(health) <= 2  and ship.getName() == "TorpedoBoat"):
+                    ship.destroyShip(self.gameBoard)
+                    self.updateVisibility()
+                    self.updateVisibilityRadar()
+                    return 1
+                elif(sum(health) <= 2  and ship.getName() == "RadarBoat"):
+                    ship.destroyShip(self.gameBoard)
+                    self.updateVisibility()
+                    self.updateVisibilityRadar()
+                    return 1
+                elif(ship.getName() == "MineLayer"):
+                    ship.destroyShip(self.gameBoard)
+                    self.updateVisibility()
+                    self.updateVisibilityRadar()
+                    return 1
+                else:
+                    health[0] = 0
+                    health[1] = 0
+                    return 1
+
             else:
                 if(sum(health) <= 4  and ship.getName() == "Cruiser"):
                     ship.destroyShip(self.gameBoard)
@@ -245,6 +282,12 @@ class Game(object):
                     return 1
 
                 elif(sum(health) <= 2  and ship.getName() == "RadarBoat"):
+                    ship.destroyShip(self.gameBoard)
+                    self.updateVisibility()
+                    self.updateVisibilityRadar()
+                    return 1
+                elif(ship.getName() == "MineLayer"):
+                    print "SLUTS"
                     ship.destroyShip(self.gameBoard)
                     self.updateVisibility()
                     self.updateVisibilityRadar()
