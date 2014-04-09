@@ -196,7 +196,7 @@ def listener(clientsocket,screen):
             ship.setSelected(True)
             
             if vis == 'True':
-            	if (setKa == 'True'):
+                if (setKa == 'True'):
                     game.detonateKamikaze()
 
                 game.moveShip(x,y,True)
@@ -548,7 +548,7 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
     positionOptions = [buttonRotate]
 
     buttonRepair = pygbutton.PygButton((1090, 400, 120, 30), 'Repair')    
-	
+    
 
     if not offline:
         if loadGame == '':
@@ -608,8 +608,8 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
             sq = Square(c,(x,y))
             game.getBoard().setSquare(x,y,sq)
 
-    	screen.fill(GRAY);
-    	updateBoard(game.getBoard(),screen, True)
+        screen.fill(GRAY);
+        updateBoard(game.getBoard(),screen, True)
     #     if not offline:
     #         clientsocket.send("Reef:"+str(corallist))
     # else:
@@ -787,7 +787,7 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                 buttonAcceptReef.draw(screen)
                 buttonRejectReef.draw(screen)
             
-            if not positioned and acceptreef == True:
+            if not positioned and acceptreef == True and turnType != "position" and turnType != "positionActive":
                 
                 screen.fill(GRAY)
                 screen.blit(positiontext, (200, WINDOWHEIGHT - 100))
@@ -1928,11 +1928,11 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                         if obj == None:
                             turnType = ''
                             for z in shiplist:
-	                        	z.setSelected(False)
-                 			for b in baselist:
-                 				x1 = b[0]
-                 				x2 = b[1]
-                 				game.getBoard().getSquare(x1,x2).getObjectOn().setSelected(False)
+                                z.setSelected(False)
+                            for b in baselist:
+                                x1 = b[0]
+                                x2 = b[1]
+                                game.getBoard().getSquare(x1,x2).getObjectOn().setSelected(False)
                         
                         elif obj.getClassName() == "Base" and turnType != "position" and (x,y) not in op_baselist:
                             obj.setSelected(True)
