@@ -208,7 +208,7 @@ def start(clientsocket,un):
         
         for event in pygame.event.get():
             if 'click' in buttonExit.handleEvent(event):
-                clientsocket.send("Signed Out:"+str(un))
+                clientsocket.send("Signed Out:"+str(username))
                 # May need to lock
                 clientsocket.close()
                 print 'Back-matchup'

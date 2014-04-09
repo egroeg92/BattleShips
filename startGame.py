@@ -224,10 +224,7 @@ def listener(clientsocket,screen):
             
             string = ''
             if vis == 'True':
-                if (setKa == 'True'):
-                    game.detonateKamikaze()
-                    string = 'Kamikaze attack at ' + (str(x)) + ' '+str(y)
-                    game.getBoard().setNot(x,y,screen)
+
 
                 game.moveShip(x,y,True)
                 game.getBoard().setNot(-1,-1,screen)
@@ -252,7 +249,11 @@ def listener(clientsocket,screen):
                 game.getBoard().setNot(x,y,screen)
                 updateBoard(game.getBoard(),screen, turn)
                 message = string
-
+            
+            if (setKa == 'True'):
+                game.detonateKamikaze()
+                string = 'Kamikaze attack at ' + (str(x)) + ' '+str(y)
+                game.getBoard().setNot(x,y,screen)
 
             ship.setSelected(False)
             # ship.move(int(dataList[2]))
@@ -1013,6 +1014,7 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                                                     game.moveShip(x, y, True)
 
                                                 if (armKamikaze):
+                                                    print 'kamikaze'
                                                     ship.setSelected(True)
                                                     game.detonateKamikaze()
 
@@ -1024,6 +1026,7 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                                                         mine = True
 
                                                     print "MINE ,",mine
+                                                    print p,q
                                                     clientsocket.send('Move:'+str(shiplist.index(ship))+':'+str(p)+':'+str(q)+':True:'+str(armKamikaze)+':'+str(mine)+':'+str(backwards))
                                                     turn = False
                                                     game.setTurn(False)
@@ -1177,7 +1180,7 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                                                     q = MLIST[1]            
                                                     game.moveShip(p,q, True)            
                                                     MLIST = ()    
-                                                    
+
                                                     message = "MINE hit at "+str(p)+' '+str(q)      
                                                 else:           
                                                     game.moveShip(x, y, True)
