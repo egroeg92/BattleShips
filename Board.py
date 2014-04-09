@@ -323,7 +323,7 @@ class Board:
                         
                 if (obj != None and obj.getClassName() == "Base"):
                     if (obj.isSelected()):
-                        c = DARKGREEN       # DARKGREEN
+                        c = YELLOW       # DARKGREEN
                     else:
                         c = obj.getColor()  # WHITE
                     pygame.draw.rect(surface, c, [x*20 + x*1 + d, y*20 + y*1 + 10, 20, 21])

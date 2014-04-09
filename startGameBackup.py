@@ -15,9 +15,8 @@ from Square import Square
 
 from reefGeneration import reefGeneration
 
-import textbox2
+import textbox
 import pickle
-
 
 FPS = 30
 WINDOWWIDTH = 1250
@@ -57,11 +56,6 @@ def drawMessagePanel(screen, turn):
         screen.blit(oppturn, (200, WINDOWHEIGHT - 100))
 
     pygame.draw.rect(screen, color, [670, 10,550, 100])
-    if positioned:
-        if turn:
-            screen.blit(FONT.render("Your turn to make a move.",1,BLACK),(880,40))
-        else:
-            screen.blit(FONT.render("Your opponent is making their move...",1,BLACK),(820,40))
 
 def drawStatPanel(screen, shiplist, op_shiplist):
     
@@ -152,11 +146,7 @@ def drawSelectedPanel(screen, shiplist):
             return
         
     
-    if turnType == "baseRepair":
-        screen.blit(FONT.render("Select the ship you'd like to repair", 1, BLACK),(880,510))
-
-    elif turnType != "reef" and turnType != "reefButton" and turnType != "waitForReefResponse":
-        screen.blit(FONT.render("No ship selected", 1, BLACK),(900,510))
+    screen.blit(FONT.render("No ship selected", 1, BLACK),(900,510))
         
 #             screen.blit(FONT.render("RadarBoat x"+str(ocount[3]), 1, BLACK),(1000,550))
 #             screen.blit(FONT.render("MineLayer x"+str(ocount[4]), 1, BLACK),(1000,570))
@@ -591,16 +581,12 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
     buttonSave = pygbutton.PygButton((960, 660, 120, 30), 'Save Game')
     buttonExit = pygbutton.PygButton((1090, 660, 120, 30), 'Quit')
 
-    global buttonRequestReef
-    global buttonReef
-    global buttonAcceptReef
-    global buttonRejectReef
 
-    buttonRequestReef = pygbutton.PygButton((880, 490, 120, 30), 'Request Reef')
-    buttonReef = pygbutton.PygButton((880, 450, 120, 30), 'New Reef')
+    buttonRequestReef = pygbutton.PygButton((760, 660, 120, 30), 'Request Reef')
+    buttonReef = pygbutton.PygButton((630, 660, 120, 30), 'New Reef')
 
-    buttonAcceptReef = pygbutton.PygButton((880, 450, 120, 30), 'Accept Reef')
-    buttonRejectReef = pygbutton.PygButton((880, 490, 120, 30), 'Reject Reef')
+    buttonAcceptReef = pygbutton.PygButton((630, 660, 120, 30), 'Accept Reef')
+    buttonRejectReef = pygbutton.PygButton((760, 660, 120, 30), 'Reject Reef')
 
     global shipOptions
     global mshipOptions
@@ -619,7 +605,7 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
     
     positionOptions = [buttonRotate]
 
-    buttonRepair = pygbutton.PygButton((700, 580, 120, 30), 'Repair')    
+    buttonRepair = pygbutton.PygButton((1090, 400, 120, 30), 'Repair')    
     
 
     if not offline:
@@ -751,9 +737,9 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
     hcannon = False 
 
     screen.fill(GRAY)
-    # drawStatPanel(screen, shiplist, op_shiplist)
-    # drawSelectedPanel(screen, shiplist)
-    # drawMessagePanel(screen, turn)
+    drawStatPanel(screen, shiplist, op_shiplist)
+    drawSelectedPanel(screen, shiplist)
+    drawMessagePanel(screen, turn)
 
 
 
@@ -838,9 +824,9 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
             if positioned:
                 op_positioned = False
        
-        # drawMessagePanel(screen, turn)  
-        # drawSelectedPanel(screen, shiplist)
-        # drawStatPanel(screen, shiplist, op_shiplist)
+        drawMessagePanel(screen, turn)  
+        drawSelectedPanel(screen, shiplist)
+        drawStatPanel(screen, shiplist, op_shiplist)
       
         ## can only quit if its your turn
 
@@ -855,6 +841,82 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
             buttonSave.draw(screen)
             buttonExit.draw(screen)
             
+            if turnType == "reef" and Player1:
+                buttonRequestReef.draw(screen)
+                buttonReef.draw(screen)
+
+            if not Player1 and not acceptreef and reefReq :
+                buttonAcceptReef.draw(screen)
+                buttonRejectReef.draw(screen)
+            
+
+            ##### HERE ####
+            if not positioned and acceptreef == True and turnType != "position" and turnType != "positionActive":
+                
+                screen.fill(GRAY)
+                screen.blit(positiontext, (200, WINDOWHEIGHT - 100))
+                buttonPositionShips.draw(screen)
+                print "NO"
+                turnType = "position"
+        
+        
+
+        if (turnType == "positionActive"):
+            for s in shiplist:
+                if (s.isSelected() and s.getSubclass() != "Kamikaze"):
+                    for o in positionOptions:
+                        o.draw(screen)
+
+
+
+        ## if firing
+
+        # print turnType 
+        if (turnType == "baseRepair"):
+            screen.fill(GRAY);
+            buttons = []
+            dockedships = []
+            p1 = ()
+            p2 = ()
+            p3 = ()
+
+            # print "Current Player is selected: ", game.getCurrentPlayer().getBase().isSelected()
+            # print "Opponent Player is selected: ", game.getOpponent().getBase().isSelected()                                
+            
+            if game.getCurrentPlayer().getBase().isSelected() == True:
+                for (x,y) in baselist:
+                    obj = game.getBoard().getSquare(x,y).getObjectOn()
+                    if obj != None and obj.getClassName() == "Base":
+                        p1 = (x, y-1) 
+                        p2 = (x, y+1)
+                        
+                        if Player1:
+                            p3 = (x+1, y)
+                        else:
+                            p3 = (x-1, y)
+
+                        
+                        for ship in shiplist:
+                            ship.setDocked(False)
+                            
+                        for ship in shiplist:
+                            poslist = ship.getPositionList()
+                            # print poslist
+                            if (p1 in poslist) or (p2 in poslist) or (p3 in poslist) and ship not in dockedships:
+                                #print ship.getNaming()
+                                dockedships.append(ship)
+                                ship.setDocked(True)
+                                # print 'repairable ' ,ship.getName()
+
+
+
+            for ship in shiplist:
+                if ship in dockedships and ship.isSelected() and sum(ship.getHealth()) < ship.getHealthSum():
+                    
+                    buttonRepair.draw(screen)
+
+
+            # print 'type',turnType               
 
 
 ########################################################
@@ -1089,7 +1151,7 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                                                 screen.blit(notifier, (200, WINDOWHEIGHT - 100))
                                                 
 
-                                                updateBoard(game.getBoard(),screen, turn)
+                                                updateBoard(game.getBoard(),Screen, turn)
                                                 message = string
 
                                                 print "CO",colx,coly
@@ -1139,7 +1201,7 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                                                 notifier = FONT.render(string, 1, (255,255,255))
                                                 screen.blit(notifier, (200, WINDOWHEIGHT - 100))
                                                 
-                                                updateBoard(game.getBoard(),screen, turn)
+                                                updateBoard(game.getBoard(),Screen, turn)
                                                 message = string
 
                                                 if not offline:
@@ -1189,7 +1251,7 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                                                 notifier = FONT.render(string, 1, (255,255,255))
                                                 screen.blit(notifier, (200, WINDOWHEIGHT - 100))
                                                 
-                                                updateBoard(game.getBoard(),screen, turn)
+                                                updateBoard(game.getBoard(),Screen, turn)
                                                 message = string
 
                                             if not offline:
@@ -1439,7 +1501,7 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                                             notifier = FONT.render(string, 1, (255,255,255))
                                             screen.blit(notifier, (200, WINDOWHEIGHT - 100))
                                             
-                                            updateBoard(game.getBoard(),screen, turn)
+                                            updateBoard(game.getBoard(),Screen, turn)
                                             message = string
 
                                             if not offline:
@@ -1465,7 +1527,7 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                                             screen.blit(notifier, (200, WINDOWHEIGHT - 100))
                                             
 
-                                            updateBoard(game.getBoard(),screen, turn)
+                                            updateBoard(game.getBoard(),Screen, turn)
                                             message = string
 
                                             if not offline:
@@ -1916,9 +1978,7 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
 
                 elif 'click' in buttonSave.handleEvent(event):
                     print 'save'
-                    pygame.draw.rect(screen, GRAY, [670, 350, 550, 300])
-                    screen.blit(FONT.render("Enter a file name (don't include extension):",1,WHITE),(750,420))
-                    savefile = textbox2.start(screen," ")
+                    savefile = textbox.start(screen,"Enter Filename")
                     if Player1:
                         pickle.dump(game,open('savedGames/'+savefile+".bsh","wb"))
                     else:
@@ -1992,11 +2052,10 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                     turnType = "reefButton"
                     updateBoard(game.getBoard(),screen,turn)
 
-                elif 'click' in buttonAcceptReef.handleEvent(event) and acceptreef == False and not Player1 and reefReq:
+                elif 'click' in buttonAcceptReef.handleEvent(event) and acceptreef == False and turnType == "reef" and not Player1 and reefReq:
                     clientsocket.send('ReefAccept')
-                    turnType = "position"
+                    turnType = "accept"
                     reefReq = False
-                    acceptreef = True
                     updateBoard(game.getBoard(),screen,turn)
 
                 elif 'click' in buttonRejectReef.handleEvent(event) and acceptreef == False and turnType == "reef" and not Player1 and reefReq:
@@ -2048,8 +2107,6 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                     if total == 0:
                         print "ship not detected"
                     if total == 0 and positioned:
-
-                        ## MAYBE DELETE
                         screen.fill(GRAY);
                         for sh in shiplist:
                             sh.setSelected(False)
@@ -2132,85 +2189,22 @@ def updateBoard(gameBoard,screen, turn):
                 drawSelectedPanel(screen,shiplist)
                 for o in shipOptions:
                     o.draw(screen)
-
-    if turnType == "reef" and not Player1 and not acceptreef and not reefReq:
-        screen.blit(FONT.render("Opponent is selecting a reef configuration...",1,BLACK),(830, 430))
-    
-    if turnType != "position" and Player1 and turnType == "waitForReefResponse":
-        screen.blit(FONT.render("Opponent is deliberating...",1,BLACK),(830, 430))
-
-    if turn:
-        if turnType == "reef":
-            if Player1 and not reefReq:
-                screen.blit(FONT.render("Please select a reef configuration:",1,BLACK),(830, 410))
-                buttonRequestReef.draw(screen)
-                buttonReef.draw(screen)
-            
-            
-            
-        if not Player1 and reefReq :
-            screen.blit(FONT.render("Do you accept this reef configuration?",1,BLACK),(830, 410))
-            buttonAcceptReef.draw(screen)
-            buttonRejectReef.draw(screen)
-
-    if turnType == "position":
-        print "POSITION TURNTYPE"
+    if not positioned:
         screen.blit(positiontext, (850, 40))
         screen.blit(positiontext1, (780, 60))
         buttonPositionShips.draw(screen)
 
-    if (turnType == "positionActive"):
-        for s in shiplist:
-            if (s.isSelected() and s.getSubclass() != "Kamikaze"):
-                for o in positionOptions:
-                    o.draw(screen)
-    if (turnType == "baseRepair"):
-        buttons = []
-        dockedships = []
-        p1 = ()
-        p2 = ()
-        p3 = ()
-
-        # print "Current Player is selected: ", game.getCurrentPlayer().getBase().isSelected()
-        # print "Opponent Player is selected: ", game.getOpponent().getBase().isSelected()                                
-        
-        if game.getCurrentPlayer().getBase().isSelected() == True:
-            for (x,y) in baselist:
-                obj = game.getBoard().getSquare(x,y).getObjectOn()
-                if obj != None and obj.getClassName() == "Base":
-                    p1 = (x, y-1) 
-                    p2 = (x, y+1)
-                    
-                    if Player1:
-                        p3 = (x+1, y)
-                    else:
-                        p3 = (x-1, y)
-
-                    
-                    for ship in shiplist:
-                        ship.setDocked(False)
-                        
-                    for ship in shiplist:
-                        poslist = ship.getPositionList()
-                        # print poslist
-                        if (p1 in poslist) or (p2 in poslist) or (p3 in poslist) and ship not in dockedships:
-                            #print ship.getNaming()
-                            dockedships.append(ship)
-                            ship.setDocked(True)
-                            # print 'repairable ' ,ship.getName()
-        for ship in shiplist:
-            if ship in dockedships and ship.isSelected() and sum(ship.getHealth()) < ship.getHealthSum():
-                buttonRepair.draw(screen) 
-            elif ship in dockedships and ship.isSelected() :
-                screen.blit(FONT.render("Nothing to repair!",1,GREEN),(700,580))             
-                
-
-
+    yourturn = FONT.render("Your turn", 1, BLACK)
+    oppturn = FONT.render("Opponent turn", 1, BLACK)
+    
     mess = FONT.render(message,1,BLACK)
 
     if turn:
+
+        screen.blit(yourturn, (800,40))
         screen.blit(mess,(800,60))
     else:
+        screen.blit(oppturn, (800,40))
         screen.blit(mess,(800,60))
 
 
