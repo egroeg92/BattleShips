@@ -346,7 +346,7 @@ def handler(clientsocket, clientaddr):
 
 
         elif dataList[0] == 'Move':
-            oppSock.send('Move:'+dataList[1]+':'+dataList[2]+':'+dataList[3]+':'+dataList[4]+':'+dataList[5])
+            oppSock.send('Move:'+dataList[1]+':'+dataList[2]+':'+dataList[3]+':'+dataList[4]+':'+dataList[5]+':'+dataList[6]+':'+dataList[7])
 
         elif dataList[0] == 'MineDrop':
             oppSock.send('MineDrop:'+dataList[1]+':'+dataList[2])
@@ -358,7 +358,7 @@ def handler(clientsocket, clientaddr):
             print str(dataList)
             oppSock.send(str(dataList))
         elif dataList[0] == 'Turn':
-            oppSock.send('Turn:'+dataList[1]+':'+dataList[2]+':'+dataList[3]+':'+dataList[4])
+            oppSock.send('Turn:'+dataList[1]+':'+dataList[2]+':'+dataList[3]+':'+dataList[4]+':'+ dataList[5])
         elif dataList[0] == 'Cannon':
             oppSock.send('Cannon:'+dataList[1]+':'+dataList[2]+':'+dataList[3])
         elif dataList[0] == 'HCannon':
