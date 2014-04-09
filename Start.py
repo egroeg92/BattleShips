@@ -3,8 +3,8 @@ from pygame.locals import *
 import SignIn
 
 FPS = 30
-WINDOWWIDTH = 800
-WINDOWHEIGHT = 750
+WINDOWWIDTH = 799
+WINDOWHEIGHT = 700
 
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
@@ -13,28 +13,24 @@ GREEN = (0, 255, 0)
 BLACK = (0, 0, 0, 0.8)
 
 FONT = pygame.font.SysFont("Arial", 14)
-
+TITLEFONT = pygame.font.SysFont("Helvetica", 30)
 
 def main():
-    windowBgColor = BLACK
 
     pygame.init()
     FPSCLOCK = pygame.time.Clock()
     screen = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
     pygame.display.set_caption('Game Menu')
 
-
+    screen.blit(pygame.image.load('images/ivanaivazovsky.png').convert(),(0,0))
 
     # menu buttons
-    buttonSignIn = pygbutton.PygButton((WINDOWWIDTH/2-75, 100, 150, 30), 'Connect to Server')
-    buttonOptions = pygbutton.PygButton((WINDOWWIDTH/2-60, 150, 120, 30), 'Game Options')
-    buttonCredits = pygbutton.PygButton((WINDOWWIDTH/2-60, 200, 120, 30), 'Credits')
-    buttonExit = pygbutton.PygButton((WINDOWWIDTH/2-60, 250, 120, 30), 'Exit')
-    buttonInstructions = pygbutton.PygButton((WINDOWWIDTH/2-60, 300, 120, 30), 'INSTRUCTIONS')
+    buttonSignIn = pygbutton.PygButton((WINDOWWIDTH/2-75, 360, 150, 30), 'Connect to Server')
+    buttonExit = pygbutton.PygButton((WINDOWWIDTH/2-75, 420, 150, 30), 'Exit')
 
-    buttonBack = pygbutton.PygButton((WINDOWWIDTH/2-60, 50, 120, 30), 'BACK <')
+    buttonBack = pygbutton.PygButton((WINDOWWIDTH/2-75, 50, 120, 30), 'Back')
 
-    allButtons = (buttonSignIn, buttonOptions, buttonCredits, buttonExit,buttonInstructions)
+    allButtons = (buttonSignIn, buttonExit)
     for b in allButtons:
             b.draw(screen)
 
@@ -46,50 +42,22 @@ def main():
                 pygame.quit()
                 sys.exit()
 
-
-
             if 'click' in buttonSignIn.handleEvent(event):
                 Start = False
                 SignIn.start(False,'')
 
-            if 'click' in buttonInstructions.handleEvent(event):
-                windowBgColor = GREEN
-                screen.fill(windowBgColor); #erases the prev screen
-                label = FONT.render("INSTRUCTIONS", 1, (255,255,0))
-                screen.blit(label, (100, 100))
-                buttonBack.draw(screen)
-                pygame.display.update()
-
-            if 'click' in buttonOptions.handleEvent(event):
-                windowBgColor = BLUE
-                screen.fill(windowBgColor); #erases the prev screen
-                label = FONT.render("OPTIONS", 1, (255,255,0))
-                screen.blit(label, (100, 100))
-                buttonBack.draw(screen)
-                #buttonBack = pygbutton.PygButton((WINDOWWIDTH/2-60, 50, 120, 30), 'BACK <')
-                buttonBack.draw(screen)
-                pygame.display.update()
-
-            if 'click' in buttonCredits.handleEvent(event):
-               screen.fill(windowBgColor); #erases the prev screen
-               label = FONT.render("CREDITS", 1, (255,255,0))
-               screen.blit(label, (100, 100))
-               buttonBack.draw(screen)
-               pygame.display.update()
-                
             if 'click' in buttonExit.handleEvent(event):
                 pygame.quit()
                 sys.exit()
 
             if 'click' in buttonBack.handleEvent(event):
-                windowBgColor = BLACK
-                screen.fill(windowBgColor); #erases the prev screen
+                screen.blit(pygame.image.load('images/ivanaivazovsky.jpg').convert(),(0,0))
+
                 for b in allButtons:
                     b.draw(screen)
 
         pygame.display.update()
         FPSCLOCK.tick(FPS)
-
 
 if __name__ == '__main__':
     main()

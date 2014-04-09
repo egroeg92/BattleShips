@@ -18,7 +18,7 @@ import login
 
 FPS = 30
 WINDOWWIDTH = 800
-WINDOWHEIGHT = 750
+WINDOWHEIGHT = 700
 
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
@@ -33,67 +33,62 @@ FONT = pygame.font.SysFont("Arial", 14)
 def start(socketerror, ip):
 
 	print 'Sign In'
-	windowBgColor = BLACK
 
 	CLOCK = pygame.time.Clock()
 	SCREEN = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
 	pygame.display.set_caption('Connect to Server')
 
-	SCREEN.fill(windowBgColor)
-	label = FONT.render("Sign In", 1, (255,255,0))
-	SCREEN.blit(label, (100, 100))
+	SCREEN.blit(pygame.image.load('images/ivanaivazovsky.png').convert(),(0,0))
+	SCREEN.blit(pygame.image.load('images/overlay.png').convert_alpha(),(100,350))
+
+
+	label = FONT.render("Enter the IP address of the server, and hit ENTER:", 1, WHITE)
+	SCREEN.blit(label, (200, 400))
+	
+	#buttonExit = pygbutton.PygButton((WINDOWWIDTH/2-60, 560, 120, 30), 'Back')
+
+	#buttonSignIn.draw(SCREEN)
+# 	buttonExit.draw(SCREEN)
+	
 	if socketerror:
-		msg = FONT.render("Couldnt connect to ip " + ip, 1, (255,255,0))
-		SCREEN.blit(msg, (100,150))	
+		msg = FONT.render("Couldnt connect to IP: " + ip, 1, RED)
+		SCREEN.blit(msg, (200,500))	
 
-
-	
-	host = textbox.start(SCREEN,"Enter Server IP")
-	print host
-	port = 9999
-	addr = (host, port)
-	clientsocket = socket(AF_INET, SOCK_STREAM)
-	
-	buttonSignIn = pygbutton.PygButton((WINDOWWIDTH/2-60, 100, 120, 30), 'Sign In')
-	buttonExit = pygbutton.PygButton((WINDOWWIDTH/2-60, 250, 120, 30), 'back')
-
-	buttonSignIn.draw(SCREEN)
-	buttonExit.draw(SCREEN)
-
-	pygame.display.update()
-
-		
 	loop = True
 	while loop :
-		for event in pygame.event.get():
-
-			if 'click' in buttonSignIn.handleEvent(event):
-				try:
-					loop = False
-					clientsocket.connect(addr)
-					clientsocket.send("Signed In")
-					login.start(clientsocket)
-					
-				except gaierror:
-					loop = False
-					start(True,host)
-				except error:
-					loop = False
-					start(True,host)
-									
+		host = textbox.start(SCREEN," ")
+		print host
+		port = 9999
+		addr = (host, port)
+		clientsocket = socket(AF_INET, SOCK_STREAM)
+		
+		pygame.display.update()
+		try:
+			loop = False
+			clientsocket.connect(addr)
+			clientsocket.send("Signed In")
+			login.start(clientsocket)
+		except gaierror:
+			loop = False
+			start(True,host)
+		except error:
+			loop = False
+			start(True,host)
 			
-			if 'click' in buttonExit.handleEvent(event):
-				print 'back-sign in'
-				loop = False
-				Start.main()
-				
+# 		for event in pygame.event.get():
+# 			
+# 			if 'click' in buttonExit.handleEvent(event):
+# 				print 'back-sign in'
+# 				loop = False
+# 				Start.main()
+# 				
 				
 
 if __name__ == '__main__':
 	import random 
 	import string
 
-	host = gethostbyname(gethostname())
+	host = "127.0.0.1"
 	print host
 	port = 9999
 	addr = (host, port)

@@ -17,16 +17,40 @@ import textbox
 
 import Setup
 FPS = 30
-WINDOWWIDTH = 800
-WINDOWHEIGHT = 750
+WINDOWWIDTH = 860
+WINDOWHEIGHT = 700
+
 
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
 GREEN = (0, 255, 0)
 BLACK = (0, 0, 0, 0.8)
+DARKGRAY = (20,20,20)
+GRAY = (70,70,70)
 
 FONT = pygame.font.SysFont("Arial", 14)
+TITLEFONT = pygame.font.SysFont("Arial", 20)
+HEADFONT = pygame.font.SysFont("Arial", 34)
+global username
+username = ""
+
+def drawChallengePanels(screen):
+    
+    screen.blit(pygame.image.load('images/matchupbg.png').convert_alpha(),(0,0))
+
+    label = HEADFONT.render('Welcome, '+ username, 1, (255,255,255))
+    screen.blit(label, (300, 20))
+    
+    
+    screen.blit(pygame.image.load('images/matchupoverlay.png').convert_alpha(),(20,100))
+    pygame.draw.rect(screen, DARKGRAY, [20, 100, 400, 30])
+    screen.blit(TITLEFONT.render("ONLINE: ", 1, WHITE),(180,105))
+    
+    screen.blit(pygame.image.load('images/matchupoverlay1.png').convert_alpha(),(440,100))
+    pygame.draw.rect(screen, DARKGRAY, [440, 100, 400, 30])
+    screen.blit(TITLEFONT.render("CHALLENGES: ", 1, WHITE),(570,105))
+
 
 def listener(clientsocket,SCREEN):
     global buttonlist
@@ -97,61 +121,63 @@ def listener(clientsocket,SCREEN):
 def setOnlineDisplay(SCREEN, people_list, clientsocket,buttonList,challengelist):
     
     print "update screen"
-    windowBgColor = BLACK
-
-    SCREEN.fill(windowBgColor)
-    label = FONT.render("Match up", 1, (255,255,0))
-    SCREEN.blit(label, (300, 50))
-    
-    label = FONT.render("Online", 1, (79,255,34))
-    SCREEN.blit(label, (120, 100))
-
-
-    buttonExit = pygbutton.PygButton((WINDOWWIDTH/2-60, 600, 120, 30), 'back')
+    drawChallengePanels(SCREEN)
+    buttonExit = pygbutton.PygButton((WINDOWWIDTH/2-60, 630, 120, 30), 'Log Out')
     buttonExit.draw(SCREEN)
-    x = 120
+    
+    x = 150
     buttonList = []
     for y in people_list :
-        person = FONT.render(str(y),1,(255,255,0))
-        SCREEN.blit(person,(120,x))
-        l = y.split(';')
-        button = pygbutton.PygButton((370,x,150,30), "challenge "+str(l[0])+'\'')
+        SCREEN.blit(pygame.image.load('images/matchupnamebg.png').convert_alpha(),(20,x-20))
+
+       
+        
+        l = str(y)[1:-1].split(';')
+        print "Y STRING " +y
+        
+        person = FONT.render(l[0],1,GREEN)
+        SCREEN.blit(person,(40,x))
+        wins = FONT.render("Wins: "+str(l[2]), 1, WHITE)
+        loss = FONT.render("Losses: " + str(l[4]), 1, WHITE)
+        
+        SCREEN.blit(wins,(40, x+20))
+        SCREEN.blit(loss,(110, x+20))
+        
+        button = pygbutton.PygButton((300,x+5,100,30), "challenge")
         button.draw(SCREEN)
         buttonList.append((button,str(y)))
-        x = x+30
+        x = x + 80
 
-    x = 120
+    x = 150
     for c in challengelist:
+        SCREEN.blit(pygame.image.load('images/matchupnamebg.png').convert_alpha(),(440,x-20))
+
         ch = 'chal'+str(c)
         l = c.split(';')
-        button = pygbutton.PygButton((530,x,170,30), "accept challenge from "+str(l[0]))
+        msg = str(l[0]) + " has sent you a challenge!"
+        SCREEN.blit(FONT.render(msg,1,(255,255,255)),(460,x+10))
+        button = pygbutton.PygButton((720,x+5,100,30), "accept")
         button.draw(SCREEN)
         buttonList.append((button,ch))
-        x = x+30
+        x = x + 80
 
     pygame.display.update()
     return buttonList
 
 
 def start(clientsocket,un):
-
+    global username
+    username = un
     print 'Matchup'
-    windowBgColor = BLACK
-
+    global SCREEN
     SCREEN = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
-    pygame.display.set_caption('Welcome '+un)
 
-    SCREEN.fill(windowBgColor)
-    label = FONT.render("Match up", 1, (255,255,0))
-    SCREEN.blit(label, (300, 50))
-    
-    label = FONT.render("Online", 1, (79,255,34))
-    SCREEN.blit(label, (120, 100))
+    pygame.display.set_caption("Match up")
 
+    drawChallengePanels(SCREEN)
 
-    buttonExit = pygbutton.PygButton((WINDOWWIDTH/2-60, 600, 120, 30), 'back')
+    buttonExit = pygbutton.PygButton((WINDOWWIDTH/2-60, 630, 120, 30), 'Log Out')
     buttonExit.draw(SCREEN)
-
     pygame.display.update()
     
     clientsocket.send('Matchup:'+un)
@@ -173,7 +199,9 @@ def start(clientsocket,un):
     Set_up = False
     print 'T2 '+ str(threading.activeCount())
     while True :
-        
+#         drawChallengePanels(SCREEN)
+#         buttonExit.draw(SCREEN)
+
         if Set_up == True:
             Setup.start(clientsocket,opp,user,un)
             break
@@ -201,3 +229,6 @@ def start(clientsocket,un):
                     else:
                     #    button press to send challenge
                         clientsocket.send("Challenge:"+x[1])
+                        
+                        
+                        
