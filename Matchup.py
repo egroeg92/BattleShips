@@ -203,7 +203,7 @@ def start(clientsocket,un):
 #         buttonExit.draw(SCREEN)
 
         if Set_up == True:
-            Setup.start(clientsocket,opp,user,un)
+            Setup.start(clientsocket,opp,user,username)
             break
         
         for event in pygame.event.get():

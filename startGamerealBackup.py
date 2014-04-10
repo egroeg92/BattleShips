@@ -176,6 +176,7 @@ def listener(clientsocket,screen):
 
     global turnType
     global message
+
     global armKamikaze
 
     shiplist = game.getCurrentPlayer().getShipList()
@@ -223,14 +224,12 @@ def listener(clientsocket,screen):
 
             ship.setSelected(True)
             
+            print ship.getName()
             string = ''
             if vis == 'True':
 
 
                 game.moveShip(x,y,True)
-                if (setKa):
-                    armKamikaze = True
-                    ship.setSelected(True)
                 game.getBoard().setNot(-1,-1,screen)
                 updateBoard(game.getBoard(),screen, turn)
                 message = string
@@ -295,8 +294,10 @@ def listener(clientsocket,screen):
             turnType = "reef"
 
         elif dataList[0] == 'ReefAccept':
+            print "lol"
             turnType = "accept"
         elif dataList[0] == 'ReefReject':
+            print 'yo'
             turnType = "reef"
 
         elif dataList[0] == 'Repair':
@@ -334,7 +335,7 @@ def listener(clientsocket,screen):
                         message = ''
                     else:
                         game.rotate(ship,rot,True,False)
-                        string =  'Collision at '+ str(ship.getPositionList()[0][0]) +' ' +str(ship.getPositionList()[0][1])
+                        string =  'collision at '+ str(ship.getPositionList()[0][0]) +' ' +str(ship.getPositionList()[0][1])
                         notifier = FONT.render(string, 1, (255,255,255))
                         print string
                         # listbox.insert(END, string)
@@ -353,7 +354,7 @@ def listener(clientsocket,screen):
                         game.rotate(ship,rot,False,True)
                     else:
                         game.rotate(ship,rot,False,False)
-                        string =  'Collision at '+ str(ship.getPositionList()[0][0])  +' ' +str(ship.getPositionList()[0][1])
+                        string =  'collision at '+ str(ship.getPositionList()[0][0])  +' ' +str(ship.getPositionList()[0][1])
                         notifier = FONT.render(string, 1, (255,255,255))
                         print 's ' , string
                         # listbox.insert(END, string)
@@ -1524,7 +1525,7 @@ def main(clientsocket, opp,user,player,corallist,loadGame):
                                 if moveValid and x>=0 and x<=29 and y>=0 and y<=29:
                                     resultString = game.fireCannon(x,y)
                                     resultString = resultString.split(':')
-                                    if resultString[0] == 'Ship sunk ':
+                                    if resultString[0] == 'ship sunk ':
                                         resultString = resultString[0]+':'+resultString[1]+'at '+str(x)+' '+str(y)
                                     else:
                                         print resultString
